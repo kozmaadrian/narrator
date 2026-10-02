@@ -1,0 +1,15 @@
+# Kokoro model files (~350 MB) — see README for the download commands
+models/
+
+# Rendered narration (WAV, MP3, SRT) and the sentence cache
+output/
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+
+# OS / editors
+.DS_Store
+.idea/
+.vscode/

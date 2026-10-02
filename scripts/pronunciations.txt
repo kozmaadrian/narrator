@@ -1,0 +1,3 @@
+# word = how it should be spoken (case-sensitive, whole words only)
+GraphiQL = Graphical
+Lufthansa = Luft Hansa

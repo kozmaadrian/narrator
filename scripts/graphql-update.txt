@@ -1,0 +1,19 @@
+# Narration script. Lines starting with # are ignored.
+# Pauses:  [pause 2s]  [500ms]  [1.5]
+# A blank line is a paragraph break. Sentences get a short automatic pause.
+
+Here's the latest update on GraphQL API support for Structured Content.
+
+Authors can now create and manage their own GraphQL endpoints through a dedicated app. The app is still under review, so for now it's available at the development URL shown here.
+
+The app's main screen lists all the endpoints you've created. For each endpoint, you choose which structure definitions it exposes through the API. The content we'll query has already been created in the Experience workspace.
+
+Each endpoint is isolated, so you can test it on its own in the built-in GraphiQL interface. The schema documentation in GraphiQL shows exactly which structures this endpoint exposes. We can also use the GraphiQL playground to write queries and fetch data.
+
+Next, let's open another endpoint called Lufthansa. This one is set up to work with its own data structures. In its playground, GraphiQL shows that this time we can query only the content this endpoint's configuration allows.
+
+Let's query the data again, and this time we'll add some filters to find the exact document we need.
+
+Structured Content documents are built as trees. That means you can filter by a value at any level of the tree, not just the top. Pretty cool, right?
+
+That's the current state of GraphQL support for Structured Content. More updates are coming soon.
