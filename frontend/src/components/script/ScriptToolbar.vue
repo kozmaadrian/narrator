@@ -1,8 +1,9 @@
-<!-- Preview, Reset, what's out of date, and the pause inserter. (Generate is in the header.) -->
+<!-- Preview, Reset, whether the script changed since the render, and the pause inserter. (Generate is in the
+     header; pending timing changes show as a count on its 2 · Sync tab.) -->
 <script setup>
 import { computed } from 'vue';
 import Icon from '../ui/Icon.vue';
-import { beforeReset, draft, pauseLen, stale } from '../../state';
+import { beforeReset, pauseLen, stale } from '../../state';
 import { useEditor } from '../../composables/useEditor';
 import { usePreview } from '../../composables/usePreview';
 import { useWorkflow } from '../../composables/useWorkflow';
@@ -12,10 +13,6 @@ const { previewAudio, preview } = usePreview();
 const { resetScript } = useWorkflow();
 
 const undo = computed(() => beforeReset.value != null);
-const badge = computed(() => {
-  if (draft.value) return `Timing changes waiting in 2 · Sync${stale.value ? '; the script changed since the render' : ''}`;
-  return stale.value ? 'Changed since the last render' : '';
-});
 </script>
 
 <template>
@@ -31,7 +28,7 @@ const badge = computed(() => {
       <template v-if="undo"><Icon name="undo" />Undo reset</template>
       <template v-else><Icon name="reset" />Reset script</template>
     </button>
-    <span v-if="badge" class="badge">{{ badge }}</span>
+    <span v-if="stale" class="badge">Changed since the last render</span>
     <span class="spacer" />
     <div class="combo">
       <button class="ghost" title="⌥P. Insert a pause at the cursor" @click="insertPause()"><Icon name="plus" />Pause</button>
