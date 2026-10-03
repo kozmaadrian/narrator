@@ -13,7 +13,7 @@ const { generate, resetScript } = useWorkflow();
 
 const undo = computed(() => beforeReset.value != null);
 const badge = computed(() => {
-  if (draft.value) return `Unapplied timing changes in 2 · Sync${stale.value ? '; the script changed since the render' : ''}`;
+  if (draft.value) return `Timing changes waiting in 2 · Sync${stale.value ? '; the script changed since the render' : ''}`;
   return stale.value ? 'Changed since the last render' : '';
 });
 </script>
@@ -28,7 +28,6 @@ const badge = computed(() => {
       <template v-else><Icon name="play" />Preview paragraph</template>
     </button>
     <button
-      class="ghost"
       :title="undo ? 'Bring back the script as it was before the reset' : 'Restore the original script (scripts/graphql-update.txt)'"
       @click="resetScript()"
     >
@@ -39,7 +38,7 @@ const badge = computed(() => {
     <span class="spacer" />
     <div class="combo">
       <button class="ghost" title="⌥P. Insert a pause at the cursor" @click="insertPause()"><Icon name="plus" />Pause</button>
-      <span class="unit"><input v-model="pauseLen" type="number" min="0.1" step="0.1" title="Pause length in seconds">s</span>
+      <span class="unit"><input v-model="pauseLen" type="number" min="0.1" step="0.1" aria-label="Pause length in seconds" title="Pause length in seconds">s</span>
     </div>
   </div>
 </template>

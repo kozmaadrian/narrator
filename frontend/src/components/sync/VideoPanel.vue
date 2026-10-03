@@ -44,7 +44,8 @@ function onPick(e) {
     <span class="drop-icon"><Icon name="video" /></span>
     <b>Add your screen recording</b>
     <span>Drop a video here to line the narration up with it.</span>
-    <span class="drop-btn"><Icon name="upload" />Choose video</span>
+    <!-- Clicks anywhere on the frame choose a video; this button is the keyboard way in. -->
+    <button type="button" class="drop-btn" @click.stop="fileInput.click()"><Icon name="upload" />Choose video</button>
     <small>Stays on this computer and plays muted, in sync with the narration.</small>
     <input ref="fileInput" type="file" accept="video/*" hidden @change="onPick">
   </div>
@@ -66,9 +67,10 @@ function onPick(e) {
 .drop > * { pointer-events: none; }  /* drag events stay on the frame (no dragleave flicker over the text) */
 .drop-icon { width: 56px; height: 56px; margin-bottom: 12px; border-radius: 16px; display: grid; place-items: center; color: #c7cbe0; background: rgba(255, 255, 255, .06); border: 1px solid rgba(255, 255, 255, .1); }
 .drop-icon .i { width: 26px; height: 26px; stroke-width: 1.6; }
-.drop b { color: #f1f2f6; font-size: 15px; font-weight: 600; }
-.drop small { font-size: 12px; color: #6b7383; }
-.drop-btn { margin: 12px 0 10px; height: 32px; padding: 0 14px; border-radius: 8px; display: inline-flex; align-items: center; gap: 6px; background: #f1f2f6; color: #111827; font-size: 13px; font-weight: 600; }
+.drop b { color: #f1f2f6; font-size: 16px; font-weight: 600; }
+.drop small { font-size: 12px; color: #8a93a3; }
+.drop-btn { margin: 12px 0 10px; height: 32px; padding: 0 14px; border: 0; border-radius: 8px; display: inline-flex; align-items: center; gap: 6px; background: #f1f2f6; color: #111827; font-size: 13px; font-weight: 600; }
+.drop-btn:focus-visible { outline: 2px solid #a5b4fc; outline-offset: 3px; }
 .video-wrap { display: flex; flex-direction: column; gap: 10px; }
 video { display: block; width: 100%; max-height: 58vh; background: #000; border-radius: 10px; }
 video::cue { background: rgba(10, 12, 18, .8); color: #fff; font-family: -apple-system, BlinkMacSystemFont, Inter, "Segoe UI", Roboto, sans-serif; line-height: 1.35; }

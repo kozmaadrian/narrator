@@ -55,12 +55,12 @@ const warnings = computed(() => last.value?.warnings || []);
 <style scoped>
 .meta { min-height: 28px; }
 .downloads { display: inline-flex; align-items: center; gap: 6px; }
-.downloads .label { color: var(--muted); font-size: 12.5px; margin-right: 2px; }
-.file { display: inline-flex; align-items: center; gap: 4px; height: 26px; padding: 0 9px; border: 1px solid var(--border-strong); border-radius: 7px; background: var(--surface); color: var(--text); font-size: 11.5px; font-weight: 650; letter-spacing: .03em; text-decoration: none; transition: border-color .12s, color .12s; }
+.downloads .label { color: var(--muted); font-size: 13px; margin-right: 2px; }
+.file { display: inline-flex; align-items: center; gap: 4px; height: 30px; padding: 0 10px; border: 1px solid var(--border-strong); border-radius: 7px; background: var(--surface); color: var(--text); font-size: 12px; font-weight: 650; letter-spacing: .03em; text-decoration: none; transition: border-color .12s, color .12s; }
 .file .i { width: 13px; height: 13px; }
 a.file:hover { border-color: var(--accent); color: var(--accent); }
 .file.off { opacity: .45; cursor: not-allowed; border-style: dashed; }
-.hold { margin-left: 4px; color: var(--muted); font-size: 12.5px; }
+.hold { margin-left: 4px; color: var(--muted); font-size: 13px; }
 .hold .link { padding: 0; height: auto; border: 0; background: none; color: var(--accent); font: inherit; font-weight: 600; cursor: pointer; }
 .hold .link:hover:not(:disabled) { background: none; text-decoration: underline; }
 .warnings { display: flex; flex-direction: column; gap: 6px; padding: 10px 12px; border-radius: 10px; border: 1px solid var(--warn-line); background: var(--warn-bg); color: var(--warn); font-size: 13px; }

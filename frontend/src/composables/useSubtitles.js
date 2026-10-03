@@ -43,7 +43,7 @@ function bindSubtitles(video) {
 
 function toggleSubtitles() {
   subtitlesOn.value = !subtitlesOn.value;
-  setStatus(subtitlesOn.value ? 'Subtitles on: the video shows the sentence being spoken.' : 'Subtitles off.');
+  setStatus(subtitlesOn.value ? 'Subtitles on.' : 'Subtitles off.');
 }
 
 const api = { subtitlesOn, currentLine, bindSubtitles, toggleSubtitles };

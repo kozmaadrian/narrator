@@ -1,6 +1,6 @@
-// The paragraph cards: pending Starts (the draft), taps, and what each card shows.
+// The paragraph cards: pending Starts (the draft), Start now (⌥N), and what each card shows.
 import { computed, ref, watch } from 'vue';
-import { draft, freeParas, last, paraCount, paras, setStatus, tapIndex } from '../state';
+import { clearStatus, draft, freeParas, last, paraCount, paras, setStatus as say, tapIndex } from '../state';
 import { fmt } from '../lib/format';
 import { paragraphGaps, schedule } from '../lib/timing';
 import { useTimeline } from './useTimeline';
@@ -15,7 +15,8 @@ watch(() => !!draft.value && (draft.value.length !== paraCount.value || !pending
   (drop) => { if (drop) draft.value = null; }, { flush: 'sync' });
 watch(paraCount, (n) => { if (tapIndex.value > n) tapIndex.value = n; });
 
-const draftHint = () => (last.value ? 'It plays live now; Apply writes it into the script.' : 'Apply writes it into the script.');
+// Messages about the cards show above them (the Apply bar says what's pending).
+const setStatus = (text, error = false) => say(text, error, false, 'cues');
 
 // The draft to edit: the pending one, or else every paragraph pinned at its rendered Start, so the move
 // changed paragraph's link alone decides what happens to the ones after it. Returned as a copy; assign it back.
@@ -40,8 +41,8 @@ function toggleFree(i) {
   const f = new Set(freeParas.value), free = !f.has(p.snippet);
   if (free) f.add(p.snippet); else f.delete(p.snippet);
   freeParas.value = f;
-  setStatus(free ? `¶${i + 1} moves on its own now: changing its Start leaves ${followers(i)} where they are.`
-    : `¶${i + 1} is linked again: changing its Start moves ${followers(i)} along with it.`);
+  setStatus(free ? `¶${i + 1} moves on its own now: a Start change leaves ${followers(i)} where they are.`
+    : `¶${i + 1} is linked: a Start change moves ${followers(i)} along with it.`);
 }
 
 // The paragraph whose link is pointed at, or else whose Start is being edited: the list tints the cards
@@ -98,21 +99,21 @@ function applyMove(i, value) {
   return { value, delta: now != null ? now - old : 0, blocker, blockerAt: blocker >= 0 ? before[blocker].start : null };
 }
 
-// How the paragraphs after ¶i took the move, for the status line ('' when there are none).
+// How the paragraphs after ¶i took the move, for the message ('' when there are none).
 function followersNote(i, r) {
   if (i >= paraCount.value - 1 || Math.abs(r.delta) < 0.05) return '';
   return isFree(i) ? `; ${followers(i)} stay where they are` : `; ${followers(i)} move along with it (${signed(r.delta)})`;
 }
 
-// An unlinked paragraph asked to start later than the one after it leaves room for.
+// An unlinked paragraph asked to start later than the one after it leaves room for. The note between the two
+// cards says so (an alert), so the message above the cards goes.
 function blockedStatus(i, r) {
   const where = `¶${r.blocker + 1} stays at ${fmt(r.blockerAt)}`, moved = r.delta > 0.05;
-  const head = moved ? `¶${i + 1} can start at ${fmt(r.value)} at the latest: ${where}.` : `¶${i + 1} can't start later: ${where}.`;
   blocked.value = {
     para: i, at: r.blocker, id: ++blockedId,
     text: `${moved ? `¶${i + 1} can't go past ${fmt(r.value)}` : `¶${i + 1} can't start later`}: ${where}.`,
   };
-  setStatus(`${head} To go further, link ¶${i + 1} (the chain button on its card) so the paragraphs after it move along.`, true);
+  clearStatus();
 }
 
 function setCue(i, t, advance = true) {
@@ -123,7 +124,7 @@ function setCue(i, t, advance = true) {
   if (advance) tapIndex.value = i + 1;
   if (r.blocker >= 0) return blockedStatus(i, r);
   const what = i === 0 && t < 0 ? `voice starts ${(-t).toFixed(1)}s before the video` : `starts at ${fmt(t)}`;
-  setStatus(`¶${i + 1} ${what}${followersNote(i, r)}. ${draftHint()}`);
+  setStatus(`¶${i + 1} ${what}${followersNote(i, r)}.`);
 }
 
 function nudgeCue(i, delta, fallback = null) {
@@ -134,7 +135,7 @@ function nudgeCue(i, delta, fallback = null) {
 function clearCue(i) {
   if (i >= paraCount.value) return;
   const r = applyMove(i, null);
-  setStatus(`¶${i + 1} follows the paragraph before it, as rendered${followersNote(i, r)}. ${draftHint()}`);
+  setStatus(`¶${i + 1} follows the paragraph before it, as rendered${followersNote(i, r)}.`);
 }
 
 function resetCue(i) {
@@ -142,7 +143,7 @@ function resetCue(i) {
   if (i >= paraCount.value || t == null) return;
   const r = applyMove(i, t);
   if (r.blocker >= 0) return blockedStatus(i, r);
-  setStatus(`¶${i + 1} back to ${fmt(t)}, as rendered${followersNote(i, r)}.${draft.value ? ` ${draftHint()}` : ''}`);
+  setStatus(`¶${i + 1} back to ${fmt(t)}, as rendered${followersNote(i, r)}.`);
 }
 
 function discardDraft() {
@@ -153,19 +154,19 @@ function discardDraft() {
 
 function canTap() {
   if (hasMedia()) return true;
-  setStatus('Load the video (or generate audio) first, then play it and tap.', true);
+  setStatus('Generate the narration first, then play it and press Start now (⌥N) when a paragraph should begin.', true);
   return false;
 }
 
 function tapNext() {
   if (!canTap()) return;
-  if (tapIndex.value >= paraCount.value) return setStatus('That was the last paragraph. Click a paragraph card to tap from there again.');
+  if (tapIndex.value >= paraCount.value) return setStatus('That was the last paragraph. Go to a paragraph (its number) to set Starts from there again.');
   setCue(tapIndex.value, videoTime());
 }
 
 const tapRow = (i) => { if (canTap()) setCue(i, videoTime()); };
 
-// Click on a card: jump to where it plays now, and tap from there.
+// A card's number (or a click on the card): jump to where it plays now; ⌥N sets Starts from there.
 function selectRow(i) {
   tapIndex.value = i;
   const t = info.value[i]?.start ?? shownStart(i);

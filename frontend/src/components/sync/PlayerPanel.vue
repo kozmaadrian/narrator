@@ -3,17 +3,19 @@
 import VideoPanel from './VideoPanel.vue';
 import TransportBar from './TransportBar.vue';
 import RenderDetails from './RenderDetails.vue';
+import StatusBar from '../ui/StatusBar.vue';
 </script>
 
 <template>
   <section class="panel player">
     <VideoPanel />
     <TransportBar />
-    <div class="legend">
+    <div class="legend" aria-hidden="true">
       <span><i class="sw speech" />Paragraph</span>
       <span><i class="sw pause" />Pause</span>
       <span><i class="sw wait" />Added pause</span>
     </div>
+    <StatusBar where="sync" />
     <RenderDetails />
   </section>
 </template>

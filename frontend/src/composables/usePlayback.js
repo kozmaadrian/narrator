@@ -2,7 +2,7 @@
 // rendered audio plays through Web Audio, following the schedule (see syncAudio), so timing changes play
 // live with or without a video.
 import { reactive } from 'vue';
-import { last, setStatus, videoDuration, videoLoaded } from '../state';
+import { clearStatus, last, setStatus, videoDuration, videoLoaded } from '../state';
 import { useTimeline } from './useTimeline';
 
 const { lead, sched, narrationEnd } = useTimeline();
@@ -205,7 +205,7 @@ function loadVideo(file) {
   videoLoaded.value = true;
   stopVoices();
   loadVoice();
-  setStatus(`Loaded video: ${file.name}`);
+  clearStatus();  // the video shows up instead
 }
 
 // The narration stays where the video was.

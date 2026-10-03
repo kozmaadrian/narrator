@@ -58,12 +58,12 @@ const speedFill = computed(() => `${((settings.speed - SPEED.min) / (SPEED.max -
 .sidebar { overflow: auto; gap: 0; padding: 0; }
 .group { padding: 18px 20px; display: flex; flex-direction: column; gap: 12px; }
 .group + .group { border-top: 1px solid var(--border); }
-h2 { font-size: 11px; font-weight: 650; letter-spacing: .08em; text-transform: uppercase; color: var(--subtle); }
+h2 { font-size: 12px; font-weight: 650; letter-spacing: .08em; text-transform: uppercase; color: var(--subtle); }
 .field { display: flex; flex-direction: column; gap: 6px; }
 .field > label { font-size: 13px; font-weight: 500; display: flex; justify-content: space-between; align-items: center; }
 .field.inline { flex-direction: row; align-items: center; justify-content: space-between; gap: 8px; }
 .field select { width: 100%; }
-.speed-val { font: 600 11.5px var(--mono); padding: 1px 6px; border-radius: 5px; background: var(--surface-3); color: var(--muted); }
+.speed-val { font: 600 12px var(--mono); padding: 1px 6px; border-radius: 5px; background: var(--surface-3); color: var(--muted); }
 @media (max-width: 1000px) {
   .sidebar { order: 1; }
 }

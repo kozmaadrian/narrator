@@ -1,7 +1,7 @@
 // The app's flow: Generate (1 · Script) → Sync, Apply (timing into the script), screens, reset and startup.
 import {
-  beforeReset, busy, config, draft, last, pronRules, pronunciations, renderKey, screen, script, setStatus,
-  settings, settingsPayload, stale, tapIndex,
+  beforeReset, busy, clearStatus, config, draft, last, pronRules, pronunciations, renderKey, screen, script, setStatus,
+  settings, settingsPayload, stale, status, tapIndex,
 } from '../state';
 import { fetchConfig, fileUrl } from '../lib/api';
 import { fmt } from '../lib/format';
@@ -39,7 +39,7 @@ async function generate({
     localStorage.setItem('narrator.last', JSON.stringify(last.value));
     loadResult(resumeAt);
     setScreen('sync');
-    setStatus(`${note ? `${note} ` : ''}Rendered ${fmt(data.duration)} of audio in ${((performance.now() - started) / 1000).toFixed(1)}s → output/${data.name}.wav`);
+    setStatus(`${note ? `${note} ` : ''}Rendered ${fmt(data.duration)} of audio in ${((performance.now() - started) / 1000).toFixed(1)}s, saved as output/${data.name}.wav.`);
     return true;
   } catch (e) {
     if (e.cancelled) setStatus(cancelNote);
@@ -51,6 +51,7 @@ async function generate({
 }
 
 function setScreen(name) {
+  if ((status.screen === 'cues' ? 'sync' : status.screen) !== name) clearStatus();  // it was about the other screen
   screen.value = name;
   localStorage.setItem('narrator.screen', name);
   if (name === 'sync') stopPreview(); else pausePlayback();
@@ -67,13 +68,13 @@ function show(name) {
 // intro before the video) and render again.
 async function applyDraft() {
   if (busy.value) return;
-  if (!draft.value) return setStatus('No timing changes to apply.');
-  if (!last.value || stale.value) return setStatus('The script or settings changed since the last render. Generate first, then Apply.', true);
+  if (!draft.value) return setStatus('No timing changes to apply.', false, false, 'cues');
+  if (!last.value || stale.value) return setStatus('The script or settings changed since the last render. Generate first, then Apply.', true, false, 'cues');
   const starts = info.value.map((x) => x.start ?? null);  // the pending schedule; late ones as they play
   const r0 = refStarts.value[0];
   const L = r0 != null && Math.abs(starts[0] - r0) < 0.001 ? last.value.lead || 0 : Math.max(0, -starts[0]);
   const text = pauseScript(script.value, last.value, starts, L);
-  if (text == null) return setStatus('Could not write the timing into the script. Generate and try again.', true);
+  if (text == null) return setStatus('Could not write the timing into the script. Generate and try again.', true, false, 'cues');
   const before = { text: script.value, draft: draft.value };
   draft.value = null;
   script.value = text;
@@ -155,8 +156,7 @@ async function init() {
   if (last.value) loadResult();
 
   setScreen(localStorage.getItem('narrator.screen') === 'sync' && last.value && !stale.value ? 'sync' : 'script');
-  setStatus(m.migrated ? 'The script\'s [at …] cues were removed ([at] is no longer supported); their times are pending changes in 2 · Sync. Generate, then Apply.'
-    : 'Ready. Write the script and press Generate (⌘↵).');
+  if (m.migrated) setStatus('The script\'s [at …] cues were removed ([at] is no longer supported); their times are pending changes in 2 · Sync. Generate, then Apply.', false, false, 'script');
   startClock();
 }
 

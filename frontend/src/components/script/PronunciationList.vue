@@ -69,7 +69,7 @@ async function remove(i) {
 
 <style scoped>
 .pron-list { display: flex; flex-direction: column; gap: 6px; }
-.pron-head { display: grid; grid-template-columns: minmax(0, 1fr) 12px minmax(0, 1fr) 26px 26px; gap: 4px; align-items: center; padding: 0 2px; color: var(--subtle); font-size: 11.5px; font-weight: 550; }
+.pron-head { display: grid; grid-template-columns: minmax(0, 1fr) 12px minmax(0, 1fr) 30px 30px; gap: 4px; align-items: center; padding: 0 2px; color: var(--subtle); font-size: 12px; font-weight: 550; }
 .pron-head span:nth-child(2) { grid-column: 3; }
 button.add { align-self: flex-start; max-width: 100%; }
 button.add span { overflow: hidden; text-overflow: ellipsis; }

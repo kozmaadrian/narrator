@@ -1,6 +1,6 @@
 <!-- The narration as a strip: a numbered block per paragraph on a thin silence line, [pause …] lines as amber
      blocks and silence added by a later Start as green blocks. Hover to see the time and paragraph under the
-     pointer; click or drag to seek. -->
+     pointer; click or drag to seek. From the keyboard it is a slider: ←/→ seek 1 s (⇧ 5 s), Home/End. -->
 <script setup>
 import { computed, ref } from 'vue';
 import { last, videoDuration, videoLoaded } from '../../state';
@@ -29,26 +29,58 @@ const segs = computed(() => (last.value ? stripEntries.value : []).map((e, i) =>
 }).filter((e) => e.end > e.start));
 const videoOnly = computed(() => !!last.value && videoLoaded.value && videoDuration.value + lead.value > narrationEnd.value);
 
-// The pointer: where it is over the strip and what plays there.
-const hover = ref(null), scrubbing = ref(false);
+// What plays at strip time t.
+function describe(t) {
+  const at = segs.value.filter((e) => t >= e.start && t < e.end);
+  const e = at.find((x) => x.kind === 'pause' && x.inner) || at.find((x) => x.kind === 'speech') || at[0];
+  let what = 'Pause', text = '';
+  if (t >= narrationEnd.value - 0.05) what = videoOnly.value && t > narrationEnd.value ? 'Video only' : 'End';
+  else if (t < lead.value && !e) what = 'Before the video';
+  else if (e?.kind === 'speech') { what = `¶${e.para + 1}`; text = e.text.replace(/^¶\d+\s+/, ''); }
+  else if (e?.kind === 'pause') { what = 'Pause'; text = e.text || ''; }
+  else if (e?.kind === 'wait') { what = `Added pause +${gapLen(e.end - e.start)}`; text = e.text; }
+  return { what, text, hot: e?.i ?? -1 };
+}
+
+// The pointer (where it is over the strip), or the playhead while the strip has keyboard focus: the time and
+// what plays there, in a chip above the strip.
+const hover = ref(null), scrubbing = ref(false), keyFocus = ref(false);
 const timeAt = (x) => {
   const r = track.value.getBoundingClientRect();
   return Math.min(1, Math.max(0, (x - r.left) / r.width)) * totalDuration.value;
 };
 const hint = computed(() => {
-  const h = hover.value;
-  if (!h) return null;
-  const at = segs.value.filter((e) => h.t >= e.start && h.t < e.end);
-  const e = at.find((x) => x.kind === 'pause' && x.inner) || at.find((x) => x.kind === 'speech') || at[0];
-  let what = 'Pause', text = '';
-  if (h.t >= narrationEnd.value - 0.05) what = videoOnly.value && h.t > narrationEnd.value ? 'Video only' : 'End';
-  else if (h.t < lead.value && !e) what = 'Before the video';
-  else if (e?.kind === 'speech') { what = `¶${e.para + 1}`; text = e.text.replace(/^¶\d+\s+/, ''); }
-  else if (e?.kind === 'pause') { what = 'Pause'; text = e.text || ''; }
-  else if (e?.kind === 'wait') { what = `Added pause +${gapLen(e.end - e.start)}`; text = e.text; }
-  const sr = strip.value.getBoundingClientRect();
-  return { time: fmt(h.t - lead.value), what, text, hot: e?.i ?? -1, x: h.x - sr.left, f: (h.x - sr.left) / sr.width };
+  const t = hover.value ? hover.value.t : keyFocus.value && last.value ? clock.t : null;
+  if (t == null) return null;
+  const sr = strip.value.getBoundingClientRect(), tr = track.value.getBoundingClientRect();
+  const x = tr.left - sr.left + (t / totalDuration.value) * tr.width;
+  return { time: fmt(t - lead.value), ...describe(t), x, f: Math.min(1, Math.max(0, x / sr.width)) };
 });
+
+// For screen readers: the video time in whole seconds and what plays there.
+const whole = (t) => {
+  const s = Math.floor(Math.abs(t));
+  return `${t < 0 ? '−' : ''}${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`;
+};
+const second = computed(() => Math.floor(clock.t));
+// Recomputed every frame while playing, but the string only changes with the second or the paragraph.
+const valueText = computed(() => {
+  if (!last.value) return null;
+  return `${whole(clock.t - lead.value)}, ${describe(clock.t).what}`;
+});
+
+const KEY_STEPS = { ArrowLeft: -1, ArrowDown: -1, ArrowRight: 1, ArrowUp: 1, PageDown: -10, PageUp: 10 };
+function onKeydown(e) {
+  if (!last.value || e.altKey || e.ctrlKey || e.metaKey) return;
+  let t;
+  if (e.key in KEY_STEPS) t = clock.t + KEY_STEPS[e.key] * (e.shiftKey ? 5 : 1);
+  else if (e.key === 'Home') t = 0;
+  else if (e.key === 'End') t = totalDuration.value;
+  else return;
+  e.preventDefault();
+  seekTo(Math.min(totalDuration.value, Math.max(0, t)));
+}
+const onFocus = (e) => { keyFocus.value = e.target.matches(':focus-visible'); };
 
 let frame = 0, pendingT = null;
 function seekSoon(t) {
@@ -81,7 +113,16 @@ const onLeave = () => { if (!scrubbing.value) hover.value = null; };
       ref="strip"
       class="strip"
       :class="{ scrubbing, empty: !last }"
-      aria-label="Timeline: click or drag to seek"
+      :tabindex="last ? 0 : null"
+      :role="last ? 'slider' : null"
+      aria-label="Timeline"
+      :aria-valuemin="last ? 0 : null"
+      :aria-valuemax="last ? Math.ceil(totalDuration) : null"
+      :aria-valuenow="last ? second : null"
+      :aria-valuetext="valueText"
+      @keydown="onKeydown"
+      @focus="onFocus"
+      @blur="keyFocus = false"
       @pointerdown="onDown"
       @pointermove="onMove"
       @pointerup="onUp"
@@ -99,11 +140,11 @@ const onLeave = () => { if (!scrubbing.value) hover.value = null; };
         ><span v-if="e.label" class="lbl">{{ e.label }}</span><span v-if="e.short" class="lbl short">{{ e.short }}</span></div>
         <div v-if="last && lead > 0" class="vstart" :style="{ left: pct(lead) }" />
         <div v-if="videoOnly" class="videoonly" :style="{ left: pct(narrationEnd) }" />
-        <div v-if="hint" class="cursor" :style="{ left: pct(hover.t) }" />
+        <div v-if="hover" class="cursor" :style="{ left: pct(hover.t) }" />
         <div v-if="last" class="playhead" :style="{ left: pct(clock.t) }" />
       </div>
     </div>
-    <div v-if="hint" class="chip" :style="{ left: `${hint.x}px`, transform: `translateX(-${hint.f * 100}%)` }">
+    <div v-if="hint" class="chip" aria-hidden="true" :style="{ left: `${hint.x}px`, transform: `translateX(-${hint.f * 100}%)` }">
       <b>{{ hint.time }}</b><span class="what">{{ hint.what }}</span><span v-if="hint.text" class="txt">{{ hint.text }}</span>
     </div>
   </div>
@@ -115,6 +156,7 @@ const onLeave = () => { if (!scrubbing.value) hover.value = null; };
 .strip:hover, .strip.scrubbing { border-color: var(--border-strong); }
 .strip.scrubbing { cursor: grabbing; }
 .strip.empty { cursor: default; }
+.strip:focus-visible { outline-offset: 2px; }
 /* Inset from the rounded edges so the first and last blocks (and the playhead at 0) aren't clipped. */
 .track { position: absolute; inset: 0 10px; }
 
@@ -122,24 +164,25 @@ const onLeave = () => { if (!scrubbing.value) hover.value = null; };
 .silence { position: absolute; left: 0; top: 50%; height: 2px; margin-top: -1px; border-radius: 1px; background: var(--border-strong); }
 
 .seg { position: absolute; top: 10px; bottom: 10px; display: flex; align-items: center; justify-content: center; container-type: inline-size; }
-.lbl { overflow: hidden; white-space: nowrap; font: 600 10.5px/1 var(--mono); letter-spacing: -.01em; pointer-events: none; }
+.lbl { overflow: hidden; white-space: nowrap; font: 600 12px/1 var(--mono); letter-spacing: -.01em; pointer-events: none; }
 
 /* Square blocks: a paragraph's speech in indigo, a [pause …] line in amber and silence added by a later Start in
    green. Opaque mixes rather than opacity, so the silence line doesn't show through. */
-.seg.speech, .seg.pause, .seg.wait { transition: background .12s, box-shadow .12s, filter .12s; }
-.seg.speech { justify-content: flex-start; padding-left: 7px; background: color-mix(in srgb, var(--speech) 78%, var(--surface-2)); }
+.seg.speech, .seg.pause, .seg.wait { transition: background .12s, box-shadow .12s; }
+.seg.speech { justify-content: flex-start; padding-left: 7px; background: color-mix(in srgb, var(--speech) 88%, var(--surface-2)); }
 .seg.pause { background: color-mix(in srgb, var(--pause) 78%, var(--surface-2)); }
 .seg.wait { background: color-mix(in srgb, var(--wait) 78%, var(--surface-2)); }
-.seg.speech .lbl { color: rgba(255, 255, 255, .92); }
-.seg.pause .lbl { color: #3d1a02; font-size: 10px; }
-.seg.wait .lbl { color: #022c22; font-size: 10px; }
-.seg.speech.hot { background: color-mix(in srgb, var(--speech) 92%, var(--surface-2)); }
+.seg.speech .lbl { color: #fff; }
+.seg.pause .lbl { color: #3d1a02; font-size: 12px; }
+.seg.wait .lbl { color: #022c22; font-size: 12px; }
+.seg.speech.hot { background: color-mix(in srgb, var(--speech) 95%, var(--surface-2)); }
 .seg.pause.hot { background: color-mix(in srgb, var(--pause) 92%, var(--surface-2)); }
 .seg.wait.hot { background: color-mix(in srgb, var(--wait) 92%, var(--surface-2)); }
 .seg.speech.active { background: var(--speech); }
 .seg.pause.active { background: var(--pause); }
 .seg.wait.active { background: var(--wait); }
-.seg.active { filter: brightness(1.1); box-shadow: inset 0 0 0 2px rgba(255, 255, 255, .6); z-index: 1; }
+/* The playing block: full colour and a white inset edge (no brightening, which would cost label contrast). */
+.seg.active { box-shadow: inset 0 0 0 2px rgba(255, 255, 255, .7); z-index: 1; }
 /* A [pause …] inside a paragraph sits on top of its block. */
 .seg.pause.inner { z-index: 1; }
 

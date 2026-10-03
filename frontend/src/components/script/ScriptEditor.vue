@@ -2,6 +2,7 @@
 <script setup>
 import { onBeforeUnmount, onMounted, ref } from 'vue';
 import ScriptToolbar from './ScriptToolbar.vue';
+import StatusBar from '../ui/StatusBar.vue';
 import { script } from '../../state';
 import { useEditor } from '../../composables/useEditor';
 
@@ -15,11 +16,13 @@ onBeforeUnmount(() => { textarea.value = null; });
 <template>
   <section class="panel editor">
     <ScriptToolbar />
+    <StatusBar where="script" class="editor-status" />
     <textarea
       ref="el"
       class="script"
       spellcheck="true"
       placeholder="Paste your narration here…"
+      aria-label="Narration script"
       :value="script"
       @input="onInput"
       @select="readSelection"
@@ -31,8 +34,13 @@ onBeforeUnmount(() => { textarea.value = null; });
 
 <style scoped>
 .editor { padding: 0; gap: 0; overflow: hidden; }
-.script { flex: 1; min-height: 160px; border: none; border-radius: 0; background: transparent; padding: 22px 28px; font: 13.5px/1.85 var(--mono); }
-.script:focus { box-shadow: none; }
+/* Lines wrap at about 75 characters for reading, with the rest of the panel as right margin (the scrollbar
+   stays at the panel's edge). */
+.script { flex: 1; min-height: 160px; border: none; border-radius: 0; background: transparent; padding: 22px max(28px, calc(100% - 75ch - 28px)) 22px 28px; font: 14px/1.85 var(--mono); }
+.editor-status.on { margin: 12px 16px 0; }
+/* The editor fills the panel: its focus outline is drawn on the panel's edge. */
+.script:focus { outline: none; }
+.editor:has(.script:focus-visible) { outline: 2px solid var(--focus); outline-offset: -1px; }
 @media (max-width: 1000px) {
   .script { min-height: 50vh; }
 }

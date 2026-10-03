@@ -71,16 +71,11 @@ const onClick = (e) => { if (e.target === dialog.value && downOutside) toggleHel
             <li>Pronunciation: select a word, press Add, and spell it the way it should sound.</li>
           </ul>
           <ul v-else class="notes">
-            <li>Hover the timeline strip to see what plays where; click or drag along it to seek. Amber blocks are <code>[pause …]</code> lines, green blocks are silence added by a later Start.</li>
-            <li>Click a paragraph card to jump there and tap from it, or pause and press the card's timer button.</li>
-            <li>The ⏸ pill between two cards is the pause before the next paragraph. Green means your change resizes it: old → new, then the difference.</li>
-            <li>The chain button next to a Start links the paragraph to the ones after it: changing its Start moves them all along, and the cards that will move are tinted while you edit. Click it to unlink, so the paragraph moves on its own and only the pauses around it change.</li>
-            <li>An unlinked paragraph can't run into the next one. If a Start is too late, a red note between the two cards says which paragraph is in the way; its Link button lets the paragraphs after it move along.</li>
-            <li>An empty Start keeps the rendered gap after the paragraph before. A changed Start shows a ↺ chip with what it was and how far it moved; click it to put that Start back.</li>
+            <li>Play the video and press ⌥N when the highlighted paragraph should start. Or type a Start, or press a card's timer button.</li>
+            <li>Linked paragraphs (the chain button) carry the ones after them along. Unlink one to move it on its own.</li>
+            <li>The ⏸ between two cards is the pause before the next paragraph. Green means your change resizes it.</li>
+            <li>Changes play right away. Apply writes them into the script, and then the downloads match.</li>
             <li>A negative Start on ¶1 starts the voice before the video.</li>
-            <li>Changes play live, with or without a video. A paragraph is never cut off: if the one before is still speaking, it waits for it.</li>
-            <li>Downloads (WAV, MP3, SRT) are locked while timing changes are pending: Apply renders the new version first.</li>
-            <li>Subtitles (the switch under the video, or ⌥C) show the sentence being spoken on the video, with the timing you hear, also in fullscreen.</li>
           </ul>
         </section>
       </div>
@@ -96,7 +91,7 @@ const onClick = (e) => { if (e.target === dialog.value && downOutside) toggleHel
 .help-dialog { width: min(820px, calc(100vw - 32px)); max-width: none; max-height: calc(100vh - 48px); padding: 0; border: none; background: none; color: var(--text); overflow: visible; }
 .help-dialog::backdrop { background: rgba(17, 24, 39, .32); backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px); animation: fade .18s ease-out; }
 .help-card.overlay-card { width: 100%; max-height: calc(100vh - 48px); overflow: auto; gap: 20px; padding: 22px 24px; }
-.help-card code { font: 11.5px var(--mono); padding: 1px 5px; border-radius: 5px; background: var(--surface-3); color: var(--text); }
+.help-card code { font: 12px var(--mono); padding: 1px 5px; border-radius: 5px; background: var(--surface-3); color: var(--text); }
 .help-head { display: flex; align-items: center; gap: 14px; }
 .help-head .logo { width: 40px; height: 40px; border-radius: 12px; }
 .help-head .logo .i { width: 20px; height: 20px; }
@@ -104,16 +99,16 @@ const onClick = (e) => { if (e.target === dialog.value && downOutside) toggleHel
 .help-head p { margin: 2px 0 0; color: var(--muted); font-size: 13px; }
 .help-head .close { margin-left: auto; align-self: flex-start; width: 32px; height: 32px; padding: 0; }
 .flow { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
-.flow li { display: flex; gap: 10px; padding: 12px; border: 1px solid var(--border); border-radius: 10px; background: var(--surface-2); color: var(--muted); font-size: 12.5px; line-height: 1.45; }
+.flow li { display: flex; gap: 10px; padding: 12px; border: 1px solid var(--border); border-radius: 10px; background: var(--surface-2); color: var(--muted); font-size: 13px; line-height: 1.45; }
 .flow li b { display: block; margin-bottom: 1px; color: var(--text); font-size: 13px; font-weight: 600; }
 .flow .step { flex: none; margin-top: 1px; background: var(--primary); color: #fff; }
 .help-cols { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 28px; }
-.help-sec h3 { display: flex; align-items: center; gap: 8px; margin: 0 0 4px; font-size: 13.5px; font-weight: 650; }
+.help-sec h3 { display: flex; align-items: center; gap: 8px; margin: 0 0 4px; font-size: 14px; font-weight: 650; }
 .help-sec.current h3 .step { background: var(--primary); color: #fff; }
-.help-sec .here { display: none; margin-left: auto; padding: 1px 8px; border-radius: 999px; background: var(--accent-weak); color: var(--accent); font-size: 11px; font-weight: 600; }
+.help-sec .here { display: none; margin-left: auto; padding: 1px 8px; border-radius: 999px; background: var(--accent-weak); color: var(--accent); font-size: 12px; font-weight: 600; }
 .help-sec.current .here { display: inline-block; }
-.help-sec h4, .help-foot h4 { margin: 18px 0 8px; font-size: 11px; font-weight: 650; letter-spacing: .08em; text-transform: uppercase; color: var(--subtle); }
-.notes { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 7px; color: var(--muted); font-size: 12.5px; line-height: 1.5; }
+.help-sec h4, .help-foot h4 { margin: 18px 0 8px; font-size: 12px; font-weight: 650; letter-spacing: .08em; text-transform: uppercase; color: var(--subtle); }
+.notes { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 7px; color: var(--muted); font-size: 13px; line-height: 1.5; }
 .notes li { position: relative; padding-left: 14px; }
 .notes li::before { content: ""; position: absolute; left: 3px; top: .62em; width: 4px; height: 4px; border-radius: 50%; background: var(--subtle); }
 .help-foot { padding-top: 2px; border-top: 1px solid var(--border); }

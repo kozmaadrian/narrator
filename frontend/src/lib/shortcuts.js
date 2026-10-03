@@ -14,8 +14,9 @@ export const SHORTCUTS = {
   ],
   sync: [
     ['Play / pause', ['alt space']],
-    ['Tap: highlighted paragraph starts now', ['alt N']],
+    ['Start now: the highlighted paragraph starts at the video time', ['alt N']],
     ['Seek back / forward 2 s', ['alt J', 'alt L']],
+    ['On the focused timeline: seek 1 s (5 s with Shift)', ['←', '→']],
     ['Subtitles on the video on / off', ['alt C']],
     ['Nudge a Start by 0.1 s', ['↑', '↓']],
     ['Nudge a Start by 1 s', ['shift ↑', 'shift ↓']],

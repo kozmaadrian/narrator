@@ -43,7 +43,7 @@ onMounted(() => cancelBtn.value?.focus());
 .busy-head { display: flex; gap: 14px; align-items: center; }
 .busy-head .logo { width: 40px; height: 40px; border-radius: 12px; flex: none; animation: pulse 1.6s ease-out infinite; }
 .busy-head .logo .i { width: 19px; height: 19px; }
-.busy-head h2 { font-size: 15px; font-weight: 650; letter-spacing: -.01em; }
+.busy-head h2 { font-size: 16px; font-weight: 650; letter-spacing: -.01em; }
 .busy-head p { margin: 2px 0 0; color: var(--muted); font-size: 13px; font-variant-numeric: tabular-nums; }
 .progress { height: 6px; border-radius: 6px; background: var(--surface-3); overflow: hidden; }
 .progress > span { display: block; width: var(--p, 0%); height: 100%; border-radius: inherit; background: linear-gradient(90deg, #6366f1, #a855f7); transition: width .25s linear; }

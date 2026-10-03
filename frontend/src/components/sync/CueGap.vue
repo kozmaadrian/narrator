@@ -42,7 +42,8 @@ const linkTitle = computed(() => {
       <div v-if="gap" class="line" :title="title">
         <span class="pill">
           <Icon name="pause" />
-          <template v-if="gap.changed"><s class="old">{{ gapLen(gap.rendered) }}</s><Icon name="arrow" class="to" /></template>
+          <span class="sr-only">{{ gap.first ? 'Silence before the voice starts:' : `Pause before ¶${index + 1}:` }}</span>
+          <template v-if="gap.changed"><s class="old">{{ gapLen(gap.rendered) }}</s><span class="sr-only">changed to</span><Icon name="arrow" class="to" /></template>
           <b>{{ gapLen(gap.now) }}</b>
         </span>
         <span v-if="gap.changed" class="delta">{{ delta }}</span>
@@ -57,7 +58,7 @@ const linkTitle = computed(() => {
         <button type="button" class="fix" :title="linkTitle" @click="toggleFree(blocked.para)">
           <Icon name="link" />Link ¶{{ blocked.para + 1 }}
         </button>
-        <button type="button" class="dismiss" title="Dismiss" aria-label="Dismiss" @click="dismissBlocked">
+        <button type="button" class="dismiss" title="Dismiss" aria-label="Dismiss this note" @click="dismissBlocked">
           <Icon name="x" />
         </button>
       </div>
@@ -72,17 +73,17 @@ const linkTitle = computed(() => {
 .moving .rail { background-image: linear-gradient(var(--accent) 50%, transparent 0); }
 .body { flex: 1; min-width: 0; display: flex; flex-direction: column; justify-content: center; padding: 12px 0; }
 .line { display: flex; align-items: center; gap: 8px; min-height: 30px; }
-.pill { display: inline-flex; align-items: center; gap: 6px; height: 24px; padding: 0 9px 0 8px; border-radius: 999px; border: 1px solid var(--pause-line); background: var(--pause-bg); color: var(--pause-ink); font: 12px var(--mono); transition: background .15s, color .15s, border-color .15s; }
+.pill { position: relative; display: inline-flex; align-items: center; gap: 6px; height: 24px; padding: 0 9px 0 8px; border-radius: 999px; border: 1px solid var(--pause-line); background: var(--pause-bg); color: var(--pause-ink); font: 12px var(--mono); transition: background .15s, color .15s, border-color .15s; }
 .pill .i { width: 10px; height: 10px; stroke-width: 2.5; }
 .pill .to { width: 12px; height: 12px; stroke-width: 2; opacity: .7; }
 .pill b { font-weight: 650; }
-.pill .old { text-decoration-thickness: 1px; opacity: .65; }
-.delta { padding: 1px 6px; border-radius: 5px; background: var(--wait-bg); color: var(--wait-ink); font: 600 11.5px var(--mono); }
-.src { color: var(--subtle); font-size: 11.5px; }
-code.src { padding: 1px 6px; border-radius: 5px; background: var(--surface-3); color: var(--muted); font: 11.5px var(--mono); }
+.pill .old { text-decoration-thickness: 1px; }
+.delta { padding: 1px 6px; border-radius: 5px; background: var(--wait-bg); color: var(--wait-ink); font: 600 12px var(--mono); }
+.src { color: var(--subtle); font-size: 12px; }
+code.src { padding: 1px 6px; border-radius: 5px; background: var(--surface-3); color: var(--muted); font: 12px var(--mono); }
 .changed .pill { border-color: var(--wait-line); background: var(--wait-bg); color: var(--wait-ink); }
-.playing .pill { border-color: var(--pause); background: var(--pause); color: #fff; }
-.changed.playing .pill { border-color: var(--wait); background: var(--wait); }
+.playing .pill { border-color: var(--pause-ink); background: var(--pause-ink); color: var(--surface); }
+.changed.playing .pill { border-color: var(--wait-ink); background: var(--wait-ink); }
 .playing .rail { background-image: linear-gradient(var(--pause) 50%, transparent 0); }
 .changed.playing .rail { background-image: linear-gradient(var(--wait) 50%, transparent 0); }
 
@@ -91,18 +92,18 @@ code.src { padding: 1px 6px; border-radius: 5px; background: var(--surface-3); c
 .block {
   display: flex; align-items: center; gap: 8px; padding: 4px 4px 4px 10px; border-radius: 8px;
   border: 1px solid color-mix(in srgb, var(--error) 30%, transparent); background: color-mix(in srgb, var(--error) 7%, var(--surface));
-  color: var(--error); font-size: 12.5px; line-height: 1.4; animation: nudge .32s ease-out;
+  color: var(--error); font-size: 13px; line-height: 1.4; animation: nudge .32s ease-out;
 }
 .line + .block { margin-top: 6px; }
 .block > .i { flex: none; width: 14px; height: 14px; }
 .msg { flex: 1; min-width: 0; font-weight: 550; }
-.block button { height: 26px; border: 0; border-radius: 6px; background: transparent; box-shadow: none; color: inherit; font: 600 12px var(--ui-font); }
+.block button { height: 28px; border: 0; border-radius: 6px; background: transparent; box-shadow: none; color: inherit; font: 600 12px var(--ui-font); }
 .block button .i { width: 13px; height: 13px; }
 .fix { padding: 0 9px 0 7px; background: color-mix(in srgb, var(--error) 12%, transparent) !important; }
 .fix:hover { background: color-mix(in srgb, var(--error) 20%, transparent) !important; }
-.dismiss { width: 26px; padding: 0; opacity: .7; }
-.dismiss:hover { opacity: 1; background: color-mix(in srgb, var(--error) 12%, transparent) !important; }
-.block button:focus-visible { box-shadow: 0 0 0 2px var(--ring); }
+.dismiss { width: 28px; padding: 0; }
+.dismiss:hover { background: color-mix(in srgb, var(--error) 12%, transparent) !important; }
+.block button:focus-visible { outline-offset: 0; }
 @keyframes nudge {
   0% { opacity: 0; transform: translateX(0); }
   25% { opacity: 1; transform: translateX(-4px); }

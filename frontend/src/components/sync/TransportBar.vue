@@ -17,7 +17,13 @@ const total = computed(() => (last.value ? `of ${fmt(totalDuration.value - lead.
 
 <template>
   <div class="transport">
-    <button class="play" title="⌥Space. Play / pause" @click="togglePlay()">
+    <button
+      class="play"
+      :aria-label="clock.playing ? 'Pause' : 'Play'"
+      aria-keyshortcuts="Alt+Space"
+      title="⌥Space. Play / pause"
+      @click="togglePlay()"
+    >
       <Icon v-if="clock.playing" name="pause" />
       <Icon v-else name="play" class="play-icon" />
     </button>
@@ -34,5 +40,5 @@ button.play .i { width: 16px; height: 16px; fill: currentColor; }
 button.play .i.play-icon { margin-left: 2px; }
 .time { display: flex; flex-direction: column; min-width: 72px; line-height: 1.25; font-variant-numeric: tabular-nums; }
 .clock { font-size: 14px; font-weight: 600; }
-.total { font-size: 11.5px; color: var(--muted); }
+.total { font-size: 12px; color: var(--muted); }
 </style>
