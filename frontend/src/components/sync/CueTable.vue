@@ -64,7 +64,7 @@ watch([activePara, activeGap], () => { if (clock.playing) follow(); }, { flush: 
 
 <style scoped>
 .cards { flex: 1; overflow: auto; min-height: 120px; padding: 12px; border-top: 1px solid var(--border); }
-.joint { height: 8px; }
+.joint { height: 20px; }
 .empty { margin: 24px 0; text-align: center; color: var(--muted); }
 @media (max-width: 1000px) {
   .cards { max-height: 60vh; }

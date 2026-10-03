@@ -67,11 +67,11 @@ const linkTitle = computed(() => {
 
 <style scoped>
 /* The rail runs under the number column, the pill lines up with the Start fields. */
-.gap { display: flex; gap: 8px; min-height: 34px; padding: 0 13px 0 calc(12px + 1px); font-size: 12px; color: var(--muted); }
+.gap { display: flex; gap: 8px; min-height: 54px; padding: 0 13px 0 calc(12px + 1px); font-size: 12px; color: var(--muted); }
 .rail { flex: none; width: 24px; margin-right: 2px; background: linear-gradient(var(--border-strong) 50%, transparent 0) center / 2px 5px repeat-y; transition: opacity .15s; }
 .moving .rail { background-image: linear-gradient(var(--accent) 50%, transparent 0); }
-.body { flex: 1; min-width: 0; display: flex; flex-direction: column; justify-content: center; }
-.line { display: flex; align-items: center; gap: 8px; min-height: 34px; }
+.body { flex: 1; min-width: 0; display: flex; flex-direction: column; justify-content: center; padding: 12px 0; }
+.line { display: flex; align-items: center; gap: 8px; min-height: 30px; }
 .pill { display: inline-flex; align-items: center; gap: 6px; height: 24px; padding: 0 9px 0 8px; border-radius: 999px; border: 1px solid var(--pause-line); background: var(--pause-bg); color: var(--pause-ink); font: 12px var(--mono); transition: background .15s, color .15s, border-color .15s; }
 .pill .i { width: 10px; height: 10px; stroke-width: 2.5; }
 .pill .to { width: 12px; height: 12px; stroke-width: 2; opacity: .7; }
@@ -89,11 +89,11 @@ code.src { padding: 1px 6px; border-radius: 5px; background: var(--surface-3); c
 /* A later Start the paragraph above couldn't take: a red stop between the two cards. */
 .is-blocked .rail { background-image: linear-gradient(var(--error) 50%, transparent 0); }
 .block {
-  display: flex; align-items: center; gap: 8px; margin: 4px 0 8px; padding: 4px 4px 4px 10px; border-radius: 8px;
+  display: flex; align-items: center; gap: 8px; padding: 4px 4px 4px 10px; border-radius: 8px;
   border: 1px solid color-mix(in srgb, var(--error) 30%, transparent); background: color-mix(in srgb, var(--error) 7%, var(--surface));
   color: var(--error); font-size: 12.5px; line-height: 1.4; animation: nudge .32s ease-out;
 }
-.line + .block { margin-top: 0; }
+.line + .block { margin-top: 6px; }
 .block > .i { flex: none; width: 14px; height: 14px; }
 .msg { flex: 1; min-width: 0; font-weight: 550; }
 .block button { height: 26px; border: 0; border-radius: 6px; background: transparent; box-shadow: none; color: inherit; font: 600 12px var(--ui-font); }
