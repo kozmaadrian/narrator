@@ -32,8 +32,8 @@ const { tapLabel, tapNext } = useCues();
 .player { overflow: auto; gap: 14px; }
 .legend { display: flex; gap: 14px; font-size: 12px; color: var(--muted); }
 .legend span { display: inline-flex; align-items: center; gap: 6px; }
-.sw { display: inline-block; width: 14px; height: 2px; border-radius: 1px; }
-.sw.speech { height: 8px; border-radius: 3px; background: var(--speech); }
-.sw.pause { background: repeating-linear-gradient(90deg, var(--pause) 0 4px, transparent 4px 6px); }
-.sw.wait { height: 3px; background: repeating-linear-gradient(90deg, var(--wait) 0 4px, transparent 4px 6px); }
+.sw { display: inline-block; width: 14px; height: 8px; }
+.sw.speech { background: var(--speech); }
+.sw.pause { background: var(--pause); }
+.sw.wait { background: var(--wait); }
 </style>

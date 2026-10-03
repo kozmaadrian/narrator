@@ -1,5 +1,5 @@
 <!-- The narration as a strip: a numbered block per paragraph on a thin silence line, [pause …] lines as amber
-     dashes and silence added by a later Start as green dashes. Hover to see the time and paragraph under the
+     blocks and silence added by a later Start as green blocks. Hover to see the time and paragraph under the
      pointer; click or drag to seek. -->
 <script setup>
 import { computed, ref } from 'vue';
@@ -24,7 +24,7 @@ const segs = computed(() => (last.value ? stripEntries.value : []).map((e, i) =>
   // Silence is inset a little so it never touches the blocks around it.
   const style = speech || e.inner
     ? { left: pct(e.start), width: `max(2px, ${pct(len)})` }
-    : { left: `calc(${pct(e.start)} + 3px)`, width: `max(2px, calc(${pct(len)} - 6px))` };
+    : { left: `calc(${pct(e.start)} + 2px)`, width: `max(2px, calc(${pct(len)} - 4px))` };
   return { ...e, i, label, short, style };
 }).filter((e) => e.end > e.start));
 const videoOnly = computed(() => !!last.value && videoLoaded.value && videoDuration.value + lead.value > narrationEnd.value);
@@ -124,30 +124,33 @@ const onLeave = () => { if (!scrubbing.value) hover.value = null; };
 .seg { position: absolute; top: 10px; bottom: 10px; display: flex; align-items: center; justify-content: center; container-type: inline-size; }
 .lbl { overflow: hidden; white-space: nowrap; font: 600 10.5px/1 var(--mono); letter-spacing: -.01em; pointer-events: none; }
 
-/* Opaque mixes rather than opacity, so the silence line doesn't show through. */
-.seg.speech { justify-content: flex-start; padding-left: 7px; border-radius: 6px; background: color-mix(in srgb, var(--speech) 78%, var(--surface-2)); transition: background .12s, box-shadow .12s, filter .12s; }
+/* Square blocks: a paragraph's speech in indigo, a [pause …] line in amber and silence added by a later Start in
+   green. Opaque mixes rather than opacity, so the silence line doesn't show through. */
+.seg.speech, .seg.pause, .seg.wait { transition: background .12s, box-shadow .12s, filter .12s; }
+.seg.speech { justify-content: flex-start; padding-left: 7px; background: color-mix(in srgb, var(--speech) 78%, var(--surface-2)); }
+.seg.pause { background: color-mix(in srgb, var(--pause) 78%, var(--surface-2)); }
+.seg.wait { background: color-mix(in srgb, var(--wait) 78%, var(--surface-2)); }
 .seg.speech .lbl { color: rgba(255, 255, 255, .92); }
+.seg.pause .lbl { color: #3d1a02; font-size: 10px; }
+.seg.wait .lbl { color: #022c22; font-size: 10px; }
 .seg.speech.hot { background: color-mix(in srgb, var(--speech) 92%, var(--surface-2)); }
-.seg.speech.active { background: var(--speech); filter: brightness(1.12); box-shadow: 0 0 0 2px var(--surface-2), 0 0 0 4px color-mix(in srgb, var(--speech) 55%, transparent); z-index: 1; }
-@container (max-width: 15px) { .seg.speech .lbl { display: none; } }
+.seg.pause.hot { background: color-mix(in srgb, var(--pause) 92%, var(--surface-2)); }
+.seg.wait.hot { background: color-mix(in srgb, var(--wait) 92%, var(--surface-2)); }
+.seg.speech.active { background: var(--speech); }
+.seg.pause.active { background: var(--pause); }
+.seg.wait.active { background: var(--wait); }
+.seg.active { filter: brightness(1.1); box-shadow: inset 0 0 0 2px rgba(255, 255, 255, .6); z-index: 1; }
+/* A [pause …] inside a paragraph sits on top of its block. */
+.seg.pause.inner { z-index: 1; }
 
-/* [pause …] lines and added silence: dashes on the silence line, with their length when there's room. */
-.seg.pause::before, .seg.wait::before { content: ""; position: absolute; left: 0; right: 0; top: 50%; height: 2px; margin-top: -1px; border-radius: 1px; }
-.seg.pause::before { background: repeating-linear-gradient(90deg, var(--pause) 0 5px, transparent 5px 8px); }
-.seg.wait::before { height: 3px; margin-top: -1.5px; background: repeating-linear-gradient(90deg, var(--wait) 0 6px, transparent 6px 9px); }
-.seg.pause .lbl, .seg.wait .lbl { position: relative; padding: 2px 5px; border-radius: 5px; font-size: 10px; }
-.seg.pause .lbl { background: var(--pause-bg); color: var(--pause-ink); box-shadow: 0 0 0 1px var(--pause-line), 0 0 0 3px var(--surface-2); }
-.seg.wait .lbl { background: var(--wait-bg); color: var(--wait-ink); box-shadow: 0 0 0 1px var(--wait-line), 0 0 0 3px var(--surface-2); }
-.seg.wait.active::before, .seg.wait.hot::before { height: 4px; margin-top: -2px; }
-.seg.pause.active::before, .seg.pause.hot::before { height: 3px; margin-top: -1.5px; }
+/* Labels only when they fit: the full length, then a rounded one, then nothing. */
+@container (max-width: 15px) { .seg.speech .lbl { display: none; } }
 .seg .lbl.short { display: none; }
-@container (max-width: 46px) {
+@container (max-width: 40px) {
   .seg.pause .lbl, .seg.wait .lbl { display: none; }
-  .seg.pause .lbl.short, .seg.wait .lbl.short { display: block; padding: 2px 3px; }
+  .seg.pause .lbl.short, .seg.wait .lbl.short { display: block; }
 }
-@container (max-width: 26px) { .seg.pause .lbl.short, .seg.wait .lbl.short { display: none; } }
-/* A [pause …] inside a paragraph: a cut in its block, with the pause dashes running through. */
-.seg.pause.inner { z-index: 1; background: var(--surface-2); }
+@container (max-width: 20px) { .seg.pause .lbl.short, .seg.wait .lbl.short { display: none; } }
 
 .videoonly { position: absolute; top: 0; bottom: 0; right: -10px; background: repeating-linear-gradient(45deg, transparent 0 6px, var(--border) 6px 8px); }
 .vstart { position: absolute; top: 6px; bottom: 6px; width: 0; border-left: 2px dashed var(--muted); opacity: .6; }
