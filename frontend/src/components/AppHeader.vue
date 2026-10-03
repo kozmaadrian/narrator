@@ -74,7 +74,7 @@ const generateTitle = computed(() => (screen.value === 'script'
         <Icon name="x" /><span class="label">Discard</span>
       </button>
       <button v-if="action === 'generate'" class="primary action" :title="generateTitle" @click="generate()">
-        Generate<Icon name="arrow" />
+        Generate
       </button>
       <button
         v-else-if="action === 'apply'" class="primary action" aria-label="Apply timing changes"
@@ -126,7 +126,6 @@ header { height: 56px; display: grid; grid-template-columns: 1fr auto 1fr; align
   .tabs { justify-self: start; }
   .tabs button { padding: 0 10px 0 6px; }
   .tabs .sync.dirty { padding-right: 6px; }
-  .action .i { display: none; }
   .discard { width: 34px; padding: 0; justify-content: center; }
   .discard .label { display: none; }
 }

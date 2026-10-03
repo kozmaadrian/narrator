@@ -1,4 +1,5 @@
-<!-- Paragraph timing: what the card buttons do and the cards themselves. No message bar: the cards show what a
+<!-- Paragraph timing: what the card buttons do (not on phones: each button is labelled) and the cards
+     themselves. No message bar: the cards show what a
      change did (screen readers hear it). Discard / Apply for pending changes are in the header. -->
 <script setup>
 import Icon from '../ui/Icon.vue';
@@ -32,4 +33,7 @@ const { cardNote } = useCues();
 .key li { display: inline-flex; align-items: center; gap: 5px; }
 .key .i { width: 13px; height: 13px; color: var(--subtle); }
 .key .pause-key { color: var(--pause-ink); }
+@media (max-width: 720px) {
+  .key { display: none; }
+}
 </style>
