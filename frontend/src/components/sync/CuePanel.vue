@@ -1,11 +1,9 @@
-<!-- Paragraph timing: what the card buttons do, messages about the cards, pending changes (Apply / Discard)
-     and the cards themselves. -->
+<!-- Paragraph timing: what the card buttons do, messages about the cards, and the cards themselves.
+     Pending changes (Discard / Apply) sit above the video. -->
 <script setup>
 import Icon from '../ui/Icon.vue';
 import StatusBar from '../ui/StatusBar.vue';
-import DraftBar from './DraftBar.vue';
 import CueTable from './CueTable.vue';
-import { draft } from '../../state';
 </script>
 
 <template>
@@ -20,7 +18,6 @@ import { draft } from '../../state';
       </ul>
     </div>
     <StatusBar where="cues" class="cues-status" />
-    <DraftBar v-if="draft" />
     <CueTable />
   </section>
 </template>

@@ -6,7 +6,7 @@ import { config, draft, last, stale } from '../../state';
 import { fileUrl } from '../../lib/api';
 import { useWorkflow } from '../../composables/useWorkflow';
 
-const { applyDraft, generate } = useWorkflow();
+const { generate } = useWorkflow();
 
 const files = computed(() => {
   const l = last.value;
@@ -14,6 +14,7 @@ const files = computed(() => {
   return (config.value?.mp3 ? ['wav', 'mp3', 'srt'] : ['wav', 'srt']).map((ext) => ({ ext, name: `${l.name}.${ext}`, href: fileUrl(l.name, ext) }));
 });
 // The files hold the rendered timing only: with pending changes (or a changed script) they'd be the old version.
+// Pending changes are explained by the Apply bar right above, so only a changed script gets a hint here.
 const locked = computed(() => (stale.value ? 'stale' : draft.value ? 'draft' : ''));
 const lockedTitle = computed(() => (locked.value === 'stale'
   ? 'The script changed since this render. Generate again to download the new version.'
@@ -31,13 +32,8 @@ const warnings = computed(() => last.value?.warnings || []);
           <span v-for="f in files" :key="f.ext" class="file off" role="link" aria-disabled="true" :title="lockedTitle">
             <Icon name="download" />{{ f.ext.toUpperCase() }}
           </span>
-          <span class="hold">
-            <template v-if="locked === 'draft'">
-              <button class="link" title="⌘↵. Write the timing into the script and render again" @click="applyDraft()">Apply</button> the timing changes to download
-            </template>
-            <template v-else>
-              <button class="link" title="Render the current script" @click="generate()">Generate</button> again to download
-            </template>
+          <span v-if="locked === 'stale'" class="hold">
+            <button class="link" title="Render the current script" @click="generate()">Generate</button> again to download
           </span>
         </template>
         <a v-for="f in files" v-else :key="f.ext" class="file" :href="f.href" :download="f.name" :title="`Download ${f.name}`">

@@ -149,7 +149,7 @@ function resetCue(i) {
 function discardDraft() {
   if (!draft.value) return;
   draft.value = null;
-  setStatus('Timing changes discarded.');
+  say('Timing changes discarded.', false, false, 'changes');  // where the Discard button was
 }
 
 function canTap() {

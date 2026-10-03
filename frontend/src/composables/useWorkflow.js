@@ -25,6 +25,7 @@ const loadResult = (resumeAt = null) => loadAudio(fileUrl(last.value.name, 'wav'
 async function generate({
   lead: L = (last.value && last.value.lead) || 0, note = '', title = 'Generating narration',
   cancelNote = 'Generation cancelled. Sentences voiced so far are cached, so the next Generate resumes quickly.',
+  where,  // which status bar gets the outcome; by default the current screen's
 } = {}) {
   if (busy.value) return false;
   stopPreview();
@@ -39,11 +40,11 @@ async function generate({
     localStorage.setItem('narrator.last', JSON.stringify(last.value));
     loadResult(resumeAt);
     setScreen('sync');
-    setStatus(`${note ? `${note} ` : ''}Rendered ${fmt(data.duration)} of audio in ${((performance.now() - started) / 1000).toFixed(1)}s, saved as output/${data.name}.wav.`);
+    setStatus(`${note ? `${note} ` : ''}Rendered ${fmt(data.duration)} of audio in ${((performance.now() - started) / 1000).toFixed(1)}s, saved as output/${data.name}.wav.`, false, false, where);
     return true;
   } catch (e) {
-    if (e.cancelled) setStatus(cancelNote);
-    else setStatus(`Error: ${e.message}`, true);
+    if (e.cancelled) setStatus(cancelNote, false, false, where);
+    else setStatus(`Error: ${e.message}`, true, false, where);
     return false;
   } finally {
     setBusy(false);
@@ -51,7 +52,7 @@ async function generate({
 }
 
 function setScreen(name) {
-  if ((status.screen === 'cues' ? 'sync' : status.screen) !== name) clearStatus();  // it was about the other screen
+  if ((status.screen === 'script' ? 'script' : 'sync') !== name) clearStatus();  // it was about the other screen
   screen.value = name;
   localStorage.setItem('narrator.screen', name);
   if (name === 'sync') stopPreview(); else pausePlayback();
@@ -68,19 +69,19 @@ function show(name) {
 // intro before the video) and render again.
 async function applyDraft() {
   if (busy.value) return;
-  if (!draft.value) return setStatus('No timing changes to apply.', false, false, 'cues');
-  if (!last.value || stale.value) return setStatus('The script or settings changed since the last render. Generate first, then Apply.', true, false, 'cues');
+  if (!draft.value) return setStatus('No timing changes to apply.', false, false, 'changes');
+  if (!last.value || stale.value) return setStatus('The script or settings changed since the last render. Generate first, then Apply.', true, false, 'changes');
   const starts = info.value.map((x) => x.start ?? null);  // the pending schedule; late ones as they play
   const r0 = refStarts.value[0];
   const L = r0 != null && Math.abs(starts[0] - r0) < 0.001 ? last.value.lead || 0 : Math.max(0, -starts[0]);
   const text = pauseScript(script.value, last.value, starts, L);
-  if (text == null) return setStatus('Could not write the timing into the script. Generate and try again.', true, false, 'cues');
+  if (text == null) return setStatus('Could not write the timing into the script. Generate and try again.', true, false, 'changes');
   const before = { text: script.value, draft: draft.value };
   draft.value = null;
   script.value = text;
   const applied = await generate({
     lead: L, note: 'Timing written into the script as [pause …] values.', title: 'Applying timing',
-    cancelNote: 'Apply cancelled. The timing changes are still pending.',
+    cancelNote: 'Apply cancelled. The timing changes are still pending.', where: 'changes',
   });
   if (!applied) {
     script.value = before.text;

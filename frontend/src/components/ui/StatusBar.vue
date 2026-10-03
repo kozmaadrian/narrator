@@ -30,6 +30,8 @@ const shown = computed(() => !!status.text && status.screen === props.where);
 
 <style scoped>
 .status-bar { display: flex; align-items: flex-start; gap: 8px; flex: none; }
+/* Empty, it stays in the page for the live regions but out of the layout, so it adds no flex gap. */
+.status-bar:not(.on) { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); }
 .status-bar.on { padding: 6px 6px 6px 12px; border-radius: 10px; border: 1px solid var(--border); background: var(--surface-2); }
 .status-bar.error { border-color: color-mix(in srgb, var(--error) 30%, transparent); background: color-mix(in srgb, var(--error) 7%, var(--surface)); }
 .msgs { flex: 1; min-width: 0; }

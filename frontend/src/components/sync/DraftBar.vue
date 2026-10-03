@@ -19,7 +19,7 @@ const { applyDraft } = useWorkflow();
 </template>
 
 <style scoped>
-.draft-bar { margin: 0 12px 12px; padding: 7px 7px 7px 12px; border-radius: 10px; border: 1px solid var(--accent-line); background: var(--accent-weak); flex: none; flex-wrap: nowrap; }
+.draft-bar { padding: 7px 7px 7px 12px; border-radius: 10px; border: 1px solid var(--accent-line); background: var(--accent-weak); flex: none; flex-wrap: nowrap; }
 .draft-bar > .i { color: var(--accent); }
 .info { font-size: 13px; }
 </style>
