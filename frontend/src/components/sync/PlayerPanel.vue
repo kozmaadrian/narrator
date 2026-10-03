@@ -1,11 +1,20 @@
 <!-- The recording, the transport with the timeline strip, the last render's files and warnings, then the timing
-     history and what became of the changes (Discard / Apply are in the header). -->
+     history and what became of the changes (Discard / Apply are in the header). In one column the history and
+     its message move under the paragraph timing (see SyncScreen). -->
 <script setup>
+import { onBeforeUnmount, ref } from 'vue';
 import VideoPanel from './VideoPanel.vue';
 import TransportBar from './TransportBar.vue';
 import RenderDetails from './RenderDetails.vue';
 import StatusBar from '../ui/StatusBar.vue';
 import TimingHistory from './TimingHistory.vue';
+
+// Same breakpoint as SyncScreen's one-column layout.
+const oneColumn = matchMedia('(max-width: 1000px)');
+const narrow = ref(oneColumn.matches);
+const onChange = (e) => { narrow.value = e.matches; };
+oneColumn.addEventListener('change', onChange);
+onBeforeUnmount(() => oneColumn.removeEventListener('change', onChange));
 </script>
 
 <template>
@@ -19,8 +28,10 @@ import TimingHistory from './TimingHistory.vue';
     </div>
     <StatusBar where="sync" />
     <RenderDetails />
-    <TimingHistory />
-    <StatusBar where="changes" />
+    <Teleport to="#sync-after-cues" :disabled="!narrow" defer>
+      <TimingHistory />
+      <StatusBar where="changes" />
+    </Teleport>
   </section>
 </template>
 

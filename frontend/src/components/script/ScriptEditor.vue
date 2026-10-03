@@ -37,10 +37,8 @@ onBeforeUnmount(() => { textarea.value = null; });
 /* The text fills the panel, edge to edge (the scrollbar stays at the panel's edge). */
 .script { flex: 1; min-height: 160px; border: none; border-radius: 0; background: transparent; padding: 22px 28px; font: 14px/1.85 var(--mono); }
 .editor-status.on { margin: 12px 16px 0; }
-/* No box around the text while typing: the rule under the toolbar turns accent instead. */
+/* No box or line around the text while typing: the caret shows where you are. */
 .script:focus { outline: none; }
-.toolbar { transition: border-color .12s, box-shadow .12s; }
-.editor:has(.script:focus) .toolbar { border-bottom-color: var(--focus); box-shadow: 0 1px 0 var(--focus); }
 @media (max-width: 1000px) {
   .script { min-height: 50vh; }
 }
