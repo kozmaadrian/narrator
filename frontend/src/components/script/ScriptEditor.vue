@@ -34,13 +34,13 @@ onBeforeUnmount(() => { textarea.value = null; });
 
 <style scoped>
 .editor { padding: 0; gap: 0; overflow: hidden; }
-/* Lines wrap at about 75 characters for reading, with the rest of the panel as right margin (the scrollbar
-   stays at the panel's edge). */
-.script { flex: 1; min-height: 160px; border: none; border-radius: 0; background: transparent; padding: 22px max(28px, calc(100% - 75ch - 28px)) 22px 28px; font: 14px/1.85 var(--mono); }
+/* The text fills the panel, edge to edge (the scrollbar stays at the panel's edge). */
+.script { flex: 1; min-height: 160px; border: none; border-radius: 0; background: transparent; padding: 22px 28px; font: 14px/1.85 var(--mono); }
 .editor-status.on { margin: 12px 16px 0; }
-/* The editor fills the panel: its focus outline is drawn on the panel's edge. */
+/* No box around the text while typing: the rule under the toolbar turns accent instead. */
 .script:focus { outline: none; }
-.editor:has(.script:focus-visible) { outline: 2px solid var(--focus); outline-offset: -1px; }
+.toolbar { transition: border-color .12s, box-shadow .12s; }
+.editor:has(.script:focus) .toolbar { border-bottom-color: var(--focus); box-shadow: 0 1px 0 var(--focus); }
 @media (max-width: 1000px) {
   .script { min-height: 50vh; }
 }
