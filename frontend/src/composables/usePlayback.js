@@ -12,8 +12,9 @@ let intro = null;           // voice intro, video held on frame 0: { t: narratio
 let resumeVideo = false;    // next video 'play' event comes from the end of the intro
 let settleUntil = 0;
 
-// What the transport, strip and table draw; updated every frame by tick().
-const clock = reactive({ t: 0, playing: false, intro: false });
+// What the transport, strip and table draw; updated every frame by tick(). seeks counts jumps (strip, keys,
+// the video's own scrubber), so the table can bring the new spot into view.
+const clock = reactive({ t: 0, playing: false, intro: false, seeks: 0 });
 
 const clockEl = () => (videoLoaded.value ? video : audio);
 
@@ -41,6 +42,7 @@ function startIntro(t = 0) {
 
 function seekTo(t) {
   if (!clockEl().src) return;
+  clock.seeks++;
   t = Math.max(0, t);
   if (!videoLoaded.value) { audio.currentTime = t; return; }
   const L = lead.value, playing = intro ? introPlaying() : !video.paused;
@@ -161,7 +163,7 @@ function bindVideo(el) {
     syncAudio(0);
   });
   el.addEventListener('playing', () => syncAudio(0.08));
-  el.addEventListener('seeking', () => { if (intro && el.currentTime > 0.01) intro = null; });
+  el.addEventListener('seeking', () => { if (intro && el.currentTime > 0.01) intro = null; clock.seeks++; });
   el.addEventListener('seeked', () => syncAudio(0));
   for (const ev of ['pause', 'waiting']) el.addEventListener(ev, () => { if (!introPlaying()) syncAudio(0); });
   el.addEventListener('timeupdate', () => syncAudio());

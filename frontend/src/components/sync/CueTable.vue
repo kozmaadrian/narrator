@@ -1,25 +1,41 @@
-<!-- One row per paragraph, with the pause before it in a slim row between; the row under the playhead scrolls
-     into view while it plays. -->
+<!-- One row per paragraph, with the pause before it in a slim row between. What plays now stays in view. -->
 <script setup>
-import { nextTick, watch } from 'vue';
+import { ref, watch } from 'vue';
 import CueGap from './CueGap.vue';
 import CueRow from './CueRow.vue';
 import { useCues } from '../../composables/useCues';
 import { usePlayback } from '../../composables/usePlayback';
 
 const { rows, gaps, activePara, activeGap } = useCues();
-const { clockEl } = usePlayback();
-const rowEls = [];
+const { clock } = usePlayback();
+const box = ref(null);
+const rowEls = [], gapEls = [];
+const frame = () => new Promise((r) => requestAnimationFrame(r));
 
-watch(activePara, async (i) => {
-  if (i < 0 || clockEl().paused) return;
-  await nextTick();
-  rowEls[i]?.$el?.scrollIntoView({ block: 'nearest' });
-});
+// Scrolls the table (never the page) to what plays now: the paragraph or, during a pause, its ⏸ row and the
+// paragraph after it. Leaves the scroll alone while that is already in view.
+function follow() {
+  const el = box.value, g = activeGap.value, p = activePara.value;
+  const first = g >= 0 ? (gapEls[g] || rowEls[g])?.$el : rowEls[p]?.$el;
+  if (!el || !first) return;
+  const last = (g >= 0 && rowEls[g]?.$el) || first;
+  const origin = el.getBoundingClientRect().top - el.scrollTop;
+  const top = first.getBoundingClientRect().top - origin, bottom = last.getBoundingClientRect().bottom - origin;
+  const head = el.querySelector('thead')?.offsetHeight || 0, view = el.clientHeight - head;
+  if (top >= el.scrollTop + head && bottom <= el.scrollTop + el.clientHeight) return;
+  // Some room above, so the paragraph before shows too and playback doesn't scroll at every paragraph.
+  const above = bottom - top < view ? Math.min((view - (bottom - top)) / 2, 64) : 0;
+  const smooth = !matchMedia('(prefers-reduced-motion: reduce)').matches;
+  el.scrollTo({ top: Math.max(0, top - head - above), behavior: smooth ? 'smooth' : 'auto' });
+}
+
+// After a seek, once the clock has moved there.
+watch(() => clock.seeks, async () => { await frame(); await frame(); follow(); });
+watch([activePara, activeGap], () => { if (clock.playing) follow(); }, { flush: 'post' });
 </script>
 
 <template>
-  <div class="timeline">
+  <div ref="box" class="timeline">
     <table>
       <thead>
         <tr>
@@ -31,7 +47,7 @@ watch(activePara, async (i) => {
       </thead>
       <tbody>
         <template v-for="(row, i) in rows" :key="i">
-          <CueGap v-if="gaps[i]" :gap="gaps[i]" :index="i" :active="i === activeGap" />
+          <CueGap v-if="gaps[i]" :ref="(el) => { gapEls[i] = el; }" :gap="gaps[i]" :index="i" :active="i === activeGap" />
           <CueRow :ref="(el) => { rowEls[i] = el; }" :row="row" :index="i" />
         </template>
         <tr v-if="!rows.length"><td colspan="4" class="empty">No paragraphs yet.</td></tr>
