@@ -117,12 +117,29 @@ export function paragraphGaps(last, ref, now) {
 // Every paragraph's Start (video time): its pending value, or else where it plays now.
 export const fixedStarts = (cues, info) => cues.map((c, i) => c ?? info[i]?.start ?? null);
 
+// The rendered timeline is per sentence; the strip shows one speech entry per paragraph (para: its index).
+// A [pause …] between two of a paragraph's sentences keeps its own entry, flagged inner.
+function paragraphEntries(last) {
+  const ps = paragraphs(last.script), out = [], merged = [];
+  for (const e of last.timeline) {
+    if (e.kind === 'pause' && e.auto) continue;
+    const k = e.kind === 'speech' ? ps.findIndex((p) => e.start_char >= p.start && e.start_char <= p.end) : -1;
+    if (k < 0) { out.push({ ...e }); continue; }
+    if (merged[k]) { merged[k].end = e.end; merged[k].end_char = e.end_char; continue; }
+    merged[k] = { ...e, para: k, text: `¶${k + 1}  ${ps[k].snippet}` };
+    out.push(merged[k]);
+  }
+  for (const e of out) {
+    if (e.kind === 'pause') e.inner = merged.some((m) => m && e.start >= m.start - 0.005 && e.end <= m.end + 0.005);
+  }
+  return out;
+}
+
 // Rendered timeline entries placed on the narration clock (moved with their audio), plus waits for moved paragraphs.
 export function placedEntries(last, sched) {
   if (!last || !sched) return [];
   const out = [];
-  for (const e of last.timeline) {
-    if (e.kind === 'pause' && e.auto) continue;
+  for (const e of paragraphEntries(last)) {
     const seg = sched.segs.find((s) => e.start >= s.t0 + s.off - 0.005 && e.end <= s.t1 + s.off + 0.005);
     if (seg) out.push({ ...e, start: e.start - seg.off, end: e.end - seg.off });
   }

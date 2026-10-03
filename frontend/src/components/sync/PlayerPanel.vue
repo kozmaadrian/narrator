@@ -15,7 +15,7 @@ const { tapLabel, tapNext } = useCues();
     <TransportBar />
     <div class="row">
       <div class="legend">
-        <span><i style="background: var(--speech)" />Speech</span>
+        <span><i style="background: var(--speech)" />Paragraph</span>
         <span><i style="background: var(--pause)" />Pause</span>
         <span><i style="background: var(--wait)" />Changed gap</span>
       </div>
