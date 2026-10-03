@@ -53,7 +53,9 @@ Each card (except the last) has a **chain button** before its timer button and S
 - **Linked** (🔗, the default): they move along by the same amount, so the pauses between them stay as they are and only the pause before the changed paragraph is resized. While you edit a Start, or point at its chain button, the cards that will move are tinted.
 - **Unlinked** (tinted broken-chain icon): the paragraph moves on its own. The paragraphs after it keep their Starts, so only the pauses before and after it get longer or shorter. It can't start so late that it would run into the next paragraph; the Start stops at the latest time that fits (on the 0.1 s grid). A red note between that paragraph and the one in its way says so (e.g. *¶2 can't go past 0:06.7: ¶3 stays at 0:18.6.*), with a **Link ¶2** button to go further. The note goes away with the next change, or with ×.
 
-The link applies to typing, nudging, Start now, clearing, and putting a Start back. It belongs to the paragraph's text, so it survives Apply and reloads. A changed Start is accent-colored and listed in the bar under the downloads, next to **Discard** and **Apply**. On the card, a **↺ was** chip shows the rendered Start, struck through, and how far it moved (↺ ~~`0:05.9`~~ `+1.1s`); click the chip to put that Start back. The pauses they resize turn green. **Discard** drops all of them. Pending changes survive a page reload as long as the script is unchanged.
+The link applies to typing, nudging, Start now, clearing, and putting a Start back. It belongs to the paragraph's text, so it survives Apply and reloads. A changed Start is accent-colored. On the card, a **↺ was** chip shows the rendered Start, struck through, and how far it moved (↺ ~~`0:05.9`~~ `+1.1s`); click the chip to put that Start back. The pauses they resize turn green.
+
+Every change is a step in the **Timing history** under the downloads: which paragraph, its Start before → after, how (typed in, nudged, Start now, cleared, put back), and whether the paragraphs after it moved too or stayed. Click a step to go back to it, or a later one to redo up to it; <kbd>⌘Z</kbd> / <kbd>⇧⌘Z</kbd> (<kbd>Ctrl+Z</kbd> / <kbd>Ctrl+Shift+Z</kbd>) do the same one step at a time when you're not typing in a Start. Undone steps stay listed (struck through) until the next change replaces them. Nudges of one paragraph within 2 seconds make one step, and the history keeps the last 60 steps. While changes are pending, **Discard** and **Apply** sit at the right end of the Download row. **Discard** drops the changes and the history. Pending changes and their history survive a page reload as long as the script is unchanged; Apply or a new render starts a fresh history.
 
 **Live preview:** changes play right away, with or without a video, using the current render. If a paragraph now starts later, the audio waits in silence until then (a green block on the timeline strip). If it starts earlier, the audio jumps ahead to it. A paragraph is never cut off: if the previous one is still speaking at its Start, it keeps its usual gap after it instead, and its card says so. The preview uses Web Audio for sample-accurate jumps, which the browser may only start after your first click or key press. At speeds other than 1×, the voice pitch shifts.
 
@@ -63,7 +65,7 @@ Paragraph 1 can take a negative Start, e.g. `-0:02.5`. The voice then starts 2.5
 
 **Reset script** restores the original script from `scripts/graphql-update.txt`. Until you edit the script again, the button reads **Undo reset** and brings your version back.
 
-**Messages** appear on the screen they belong to: under the toolbar on 1 · Script, under the timeline on 2 · Sync, above the cards for card edits, and in place of the Discard/Apply bar for what Apply or Discard did. They're announced to screen readers, × dismisses them, and switching screens clears them.
+**Messages** appear on the screen they belong to: under the toolbar on 1 · Script, under the timeline on 2 · Sync, above the cards for card edits, and and under the timing history for what Apply, Discard, or a step back did. They're announced to screen readers, × dismisses them, and switching screens clears them.
 
 **Help:** the **?** icon in the header (or <kbd>?</kbd> / <kbd>⌘/</kbd>) opens a cheat sheet with the three-step flow, the shortcuts for each screen (the current screen is marked), the script syntax, and syncing tips. <kbd>Esc</kbd> or a click outside closes it. On Windows and Linux, the shortcuts show <kbd>Ctrl</kbd>/<kbd>Alt</kbd> instead of ⌘/⌥.
 
@@ -88,7 +90,7 @@ npm run dev            # http://localhost:5173 with hot reload; /api is proxied 
 |---|---|
 | `App.vue` | header, the two screens, overlays |
 | `components/script/` | 1 · Script: editor, toolbar, settings sidebar, pronunciation list |
-| `components/sync/` | 2 · Sync: video panel, transport, timeline strip, downloads, paragraph timing cards (paragraph cards and ⏸ pause connectors) and draft bar |
+| `components/sync/` | 2 · Sync: video panel, transport, timeline strip, downloads, paragraph timing cards (paragraph cards and ⏸ pause connectors) and timing history |
 | `components/overlays/` | progress card, help dialog, shortcut list |
 | `components/ui/` | SVG icon sprite and `Icon` |
 | `composables/` | behavior: rendering, playback clock, cues, editor, preview, workflow, shortcuts, persistence |

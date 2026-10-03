@@ -1,11 +1,11 @@
 // The app's flow: Generate (1 · Script) → Sync, Apply (timing into the script), screens, reset and startup.
 import {
   beforeReset, busy, clearStatus, config, draft, last, pronRules, pronunciations, renderKey, screen, script, setStatus,
-  settings, settingsPayload, stale, status, tapIndex,
+  settings, settingsPayload, stale, status, tapIndex, timingHistory,
 } from '../state';
 import { fetchConfig, fileUrl } from '../lib/api';
 import { fmt } from '../lib/format';
-import { migrateCues } from '../lib/script';
+import { migrateCues, paragraphs } from '../lib/script';
 import { parsePron, pronText } from '../lib/pronunciation';
 import { pauseScript } from '../lib/timing';
 import { useTimeline } from './useTimeline';
@@ -76,7 +76,7 @@ async function applyDraft() {
   const L = r0 != null && Math.abs(starts[0] - r0) < 0.001 ? last.value.lead || 0 : Math.max(0, -starts[0]);
   const text = pauseScript(script.value, last.value, starts, L);
   if (text == null) return setStatus('Could not write the timing into the script. Generate and try again.', true, false, 'changes');
-  const before = { text: script.value, draft: draft.value };
+  const before = { text: script.value, draft: draft.value, history: timingHistory.value };
   draft.value = null;
   script.value = text;
   const applied = await generate({
@@ -86,6 +86,7 @@ async function applyDraft() {
   if (!applied) {
     script.value = before.text;
     draft.value = before.draft;
+    timingHistory.value = before.history;
   }
 }
 
@@ -107,11 +108,22 @@ async function resetScript() {
   if (script.value === fresh.default_script) return setStatus('The script already matches the original.');
   const previous = script.value;
   draft.value = null;
+  timingHistory.value = null;
   replaceScript(0, script.value.length, fresh.default_script);
   beforeReset.value = previous;  // after replaceScript, whose input event clears it
   toStart();
   tapIndex.value = 0;
   setStatus('Script reset to the original. Press Undo reset to get your version back, or ⌘↵ to regenerate.');
+}
+
+// A stored timing history, if it still fits: n paragraphs, and at the step the stored draft is at.
+function validHistory(h, n, pending) {
+  if (!h || !Array.isArray(h.steps) || h.steps.length < 2 || !Number.isInteger(h.at) || h.at < 0 || h.at >= h.steps.length) return null;
+  const fits = (d) => d === null || (Array.isArray(d) && d.length === n && d.every((x) => x === null || Number.isFinite(x)));
+  if (!h.steps.every((s) => s && typeof s.how === 'string' && fits(s.draft))) return null;
+  const at = h.steps[h.at].draft;
+  if (pending && !(at && at.every((x, k) => x === pending[k]))) return null;
+  return { steps: h.steps, at: h.at };
 }
 
 function readJSON(key) {
@@ -135,9 +147,12 @@ async function init() {
 
   const m = migrateCues(localStorage.getItem('narrator.script') ?? cfg.default_script, readJSON('narrator.draft'));
   const pend = m.pend;
-  let pending = null;
+  let pending = null, history = null;
   if (m.migrated) pending = m.draft;
-  else if (pend && pend.script === m.script && Array.isArray(pend.draft)) pending = pend.draft;
+  else if (pend && pend.script === m.script) {
+    if (Array.isArray(pend.draft)) pending = pend.draft;
+    history = validHistory(pend.history, paragraphs(m.script).length, pending);
+  }
   script.value = m.script;
 
   // The last render comes before the draft, which only lives while it differs from that render.
@@ -154,6 +169,7 @@ async function init() {
   }
   last.value = stored;
   draft.value = pending;
+  if (last.value && history) timingHistory.value = history;  // after the render and the draft, which clear it
   if (last.value) loadResult();
 
   setScreen(localStorage.getItem('narrator.screen') === 'sync' && last.value && !stale.value ? 'sync' : 'script');

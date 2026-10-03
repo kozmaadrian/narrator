@@ -8,6 +8,10 @@ export const config = shallowRef(null);    // GET /api/config
 export const last = shallowRef(null);      // the last full render (see lib/timing.js), replaced as a whole
 export const script = ref('');
 export const draft = shallowRef(null);     // pending Start per paragraph (video time; null = rendered gap) until Apply; replaced as a whole
+// The timing changes since the last render, step by step, to go back (or forward again) to any of them:
+// { steps: [{ para, how, from, to, what, more, draft }], at: the step the draft is at }. Step 0 is the
+// rendered timing (draft null). A new render, a changed paragraph count or Discard clears it. Replaced as a whole.
+export const timingHistory = shallowRef(null);
 export const screen = ref('script');       // 'script' | 'sync'
 export const busy = ref(false);            // a render runs; the app is inert
 export const tapIndex = ref(0);            // paragraph that receives the next tap (⌥N)

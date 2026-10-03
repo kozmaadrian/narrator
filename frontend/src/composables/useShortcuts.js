@@ -14,7 +14,7 @@ const { cancelRender } = useRender();
 const { togglePlay, seekTo, currentTime } = usePlayback();
 const { insertPause } = useEditor();
 const { preview } = usePreview();
-const { tapNext } = useCues();
+const { tapNext, undoStep, redoStep } = useCues();
 const { generate, applyDraft } = useWorkflow();
 const { helpOpen, toggleHelp } = useHelp();
 const { toggleSubtitles } = useSubtitles();
@@ -39,6 +39,12 @@ function onKeydown(e) {
     if (sync) applyDraft();
     else if (e.shiftKey) preview();
     else generate();
+    return;
+  }
+  // Undo / redo a timing change; in a text field, ⌘Z stays the field's own.
+  if (sync && mod && !e.altKey && e.code === 'KeyZ' && !typingIn(e.target)) {
+    e.preventDefault();
+    if (e.shiftKey) redoStep(); else undoStep();
     return;
   }
   if (!e.altKey || mod) return;

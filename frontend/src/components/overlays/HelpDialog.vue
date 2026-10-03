@@ -4,7 +4,7 @@ import { nextTick, ref, watch } from 'vue';
 import Icon from '../ui/Icon.vue';
 import ShortcutList from './ShortcutList.vue';
 import { screen } from '../../state';
-import { SHORTCUTS } from '../../lib/shortcuts';
+import { IS_MAC, SHORTCUTS } from '../../lib/shortcuts';
 import { useHelp } from '../../composables/useHelp';
 
 const { helpOpen, toggleHelp } = useHelp();
@@ -75,6 +75,7 @@ const onClick = (e) => { if (e.target === dialog.value && downOutside) toggleHel
             <li>Linked paragraphs (the chain button) carry the ones after them along. Unlink one to move it on its own.</li>
             <li>The ⏸ between two cards is the pause before the next paragraph. Green means your change resizes it.</li>
             <li>Changes play right away. Apply writes them into the script, and then the downloads match.</li>
+            <li>Each change is a step in the Timing history under the downloads. Click a step to go back to it, or press {{ IS_MAC ? '⌘Z / ⇧⌘Z' : 'Ctrl+Z / Ctrl+Shift+Z' }}.</li>
             <li>A negative Start on ¶1 starts the voice before the video.</li>
           </ul>
         </section>

@@ -20,6 +20,7 @@ export const SHORTCUTS = {
     ['Subtitles on the video on / off', ['alt C']],
     ['Nudge a Start by 0.1 s', ['↑', '↓']],
     ['Nudge a Start by 1 s', ['shift ↑', 'shift ↓']],
+    ['Undo / redo a timing change (outside a Start field)', ['mod Z', 'shift mod Z']],
     ['Apply the timing to the script', ['mod enter']],
   ],
   general: [

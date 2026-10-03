@@ -1,6 +1,6 @@
 // The paragraph cards: pending Starts (the draft), Start now (⌥N), and what each card shows.
 import { computed, ref, watch } from 'vue';
-import { clearStatus, draft, freeParas, last, paraCount, paras, setStatus as say, tapIndex } from '../state';
+import { clearStatus, draft, freeParas, last, paraCount, paras, setStatus as say, tapIndex, timingHistory } from '../state';
 import { fmt } from '../lib/format';
 import { paragraphGaps, schedule } from '../lib/timing';
 import { useTimeline } from './useTimeline';
@@ -14,6 +14,8 @@ const { clock, hasMedia, videoTime, seekTo } = usePlayback();
 watch(() => !!draft.value && (draft.value.length !== paraCount.value || !pending.value.some(Boolean)),
   (drop) => { if (drop) draft.value = null; }, { flush: 'sync' });
 watch(paraCount, (n) => { if (tapIndex.value > n) tapIndex.value = n; });
+// The history's steps are Starts for these paragraphs since this render.
+watch([last, paraCount], () => { timingHistory.value = null; }, { flush: 'sync' });
 
 // Messages about the cards show above them (the Apply bar says what's pending).
 const setStatus = (text, error = false) => say(text, error, false, 'cues');
@@ -116,11 +118,48 @@ function blockedStatus(i, r) {
   clearStatus();
 }
 
-function setCue(i, t, advance = true) {
+// Each change to the draft is a step in the history. how: 'typed', 'now' (Start now), 'nudge', 'clear',
+// 'reset'. Nudges of one paragraph in quick succession make one step; a change that changes nothing, none.
+const sameDraft = (a, b) => (a == null ? b == null : !!b && a.length === b.length && a.every((x, k) => x === b[k]));
+const ORIGIN = { para: -1, how: 'origin', draft: null };
+const MAX_STEPS = 60, NUDGE_MERGE_MS = 2000;
+
+// The Start as its card shows it, or else where the paragraph plays.
+const cardStart = (i) => shownStart(i) ?? info.value[i]?.start ?? null;
+
+function track(i, how, move) {
+  const h = history.value, prev = draft.value, from = cardStart(i);
+  const r = move();
+  const now = draft.value;
+  if (sameDraft(prev, now)) return r;
+  let steps = h ? h.steps.slice(0, h.at + 1) : [ORIGIN];
+  const top = steps[steps.length - 1], t = Date.now();
+  let start = from, carried = Math.abs(r.delta) >= 0.05;
+  if (how === 'nudge' && top.how === 'nudge' && top.para === i && h.at === h.steps.length - 1 && t - top.t < NUDGE_MERGE_MS) {
+    steps = steps.slice(0, -1);
+    start = top.from;
+    carried ||= top.carried;
+  }
+  if (!sameDraft(steps[steps.length - 1].draft, now)) {
+    const to = cardStart(i), plays = info.value[i]?.start, moved = start != null && to != null ? to - start : 0;
+    const what = { typed: 'typed in', now: 'Start now', nudge: `nudged ${signed(moved)}`, reset: 'back to the rendered Start',
+      clear: i > 0 ? `follows ¶${i} as rendered` : 'Start cleared' }[how];
+    const more = [];
+    if (r.blocker >= 0) more.push(`stopped by ¶${r.blocker + 1}`);
+    if (plays != null && to != null && Math.abs(plays - to) >= 0.05) more.push(`plays at ${fmt(plays)}`);
+    if (carried && i < paraCount.value - 1) more.push(`${followers(i)} ${isFree(i) ? 'stayed' : 'moved too'}`);
+    steps.push({ para: i, how, from: start, to, what, more: more.join(' · '), carried, draft: now, t });
+  }
+  if (steps.length > MAX_STEPS + 1) steps.splice(1, steps.length - MAX_STEPS - 1);
+  timingHistory.value = { steps, at: steps.length - 1 };
+  return r;
+}
+
+function setCue(i, t, advance = true, how = 'typed') {
   if (i >= paraCount.value || t == null || Number.isNaN(t)) return;
   if (i > 0) t = Math.max(0, t);
   t = Math.round(t * 10) / 10;
-  const r = applyMove(i, t);
+  const r = track(i, how, () => applyMove(i, t));
   if (advance) tapIndex.value = i + 1;
   if (r.blocker >= 0) return blockedStatus(i, r);
   const what = i === 0 && t < 0 ? `voice starts ${(-t).toFixed(1)}s before the video` : `starts at ${fmt(t)}`;
@@ -128,28 +167,29 @@ function setCue(i, t, advance = true) {
 }
 
 function nudgeCue(i, delta, fallback = null) {
-  if (i < paraCount.value) setCue(i, (shownStart(i) ?? fallback ?? videoTime()) + delta, false);
+  if (i < paraCount.value) setCue(i, (shownStart(i) ?? fallback ?? videoTime()) + delta, false, 'nudge');
 }
 
 // Empty Start: the paragraph keeps its rendered gap after the paragraph before it.
 function clearCue(i) {
   if (i >= paraCount.value) return;
-  const r = applyMove(i, null);
+  const r = track(i, 'clear', () => applyMove(i, null));
   setStatus(`¶${i + 1} follows the paragraph before it, as rendered${followersNote(i, r)}.`);
 }
 
 function resetCue(i) {
   const t = refStarts.value[i];
   if (i >= paraCount.value || t == null) return;
-  const r = applyMove(i, t);
+  const r = track(i, 'reset', () => applyMove(i, t));
   if (r.blocker >= 0) return blockedStatus(i, r);
   setStatus(`¶${i + 1} back to ${fmt(t)}, as rendered${followersNote(i, r)}.`);
 }
 
 function discardDraft() {
-  if (!draft.value) return;
+  if (!draft.value && !timingHistory.value) return;
   draft.value = null;
-  say('Timing changes discarded.', false, false, 'changes');  // where the Discard button was
+  timingHistory.value = null;
+  say('Timing changes discarded.', false, false, 'changes');  // under the history, where they were listed
 }
 
 function canTap() {
@@ -161,10 +201,10 @@ function canTap() {
 function tapNext() {
   if (!canTap()) return;
   if (tapIndex.value >= paraCount.value) return setStatus('That was the last paragraph. Go to a paragraph (its number) to set Starts from there again.');
-  setCue(tapIndex.value, videoTime());
+  setCue(tapIndex.value, videoTime(), true, 'now');
 }
 
-const tapRow = (i) => { if (canTap()) setCue(i, videoTime()); };
+const tapRow = (i) => { if (canTap()) setCue(i, videoTime(), true, 'now'); };
 
 // A card's number (or a click on the card): jump to where it plays now; ⌥N sets Starts from there.
 function selectRow(i) {
@@ -215,9 +255,45 @@ const changedList = computed(() => {
   });
   return runs.map(([a, b]) => (a === b ? `¶${a + 1}` : `¶${a + 1}${b > a + 1 ? '–' : ', '}¶${b + 1}`));
 });
-const changedCount = computed(() => pending.value.filter(Boolean).length);
-const draftSummary = computed(() => (draft.value
-  ? `${changedList.value.join(', ')} changed. Apply writes ${changedCount.value > 1 ? 'them' : 'it'} into the script as [pause …] values.` : ''));
+const draftSummary = computed(() => (draft.value ? `${changedList.value.join(', ')} changed` : 'Same as the render'));
+
+// The history as listed. A draft from before (a reload of an older version, converted [at …] cues, a new
+// render that kept it) is one step after the rendered timing.
+const history = computed(() => timingHistory.value
+  || (draft.value ? { steps: [ORIGIN, { para: -1, how: 'earlier', what: `${changedList.value.join(', ')} changed`, more: '', draft: draft.value }], at: 1 } : null));
+
+// A step in words, for messages: "step 2 (¶3 0:10.0 → 0:12.0)".
+function stepName(k) {
+  const s = history.value.steps[k];
+  if (s.how === 'origin') return 'the rendered timing';
+  if (s.how === 'earlier') return `step ${k} (earlier changes)`;
+  return `step ${k} (¶${s.para + 1} ${fmt(s.from)} → ${fmt(s.to)})`;
+}
+
+// Back (or forward again) to step k: the draft becomes what it was then. The later steps stay listed until
+// the next change.
+function goToStep(k) {
+  const h = history.value;
+  if (!h || k < 0 || k >= h.steps.length || k === h.at) return;
+  const name = stepName(k), back = k < h.at;
+  timingHistory.value = { steps: h.steps, at: k };
+  draft.value = h.steps[k].draft ? [...h.steps[k].draft] : null;
+  const later = h.steps.length - 1 - k;
+  say(`${back ? 'Back to' : 'Redone up to'} ${name}.${later ? ` ${later === 1 ? 'The step after it stays' : `The ${later} steps after it stay`} listed to redo until the next change.` : ''}`,
+    false, false, 'changes');
+}
+
+function undoStep() {
+  const h = history.value;
+  if (!h || h.at === 0) return say('Nothing to undo: the timing is as rendered.', false, false, 'changes');
+  goToStep(h.at - 1);
+}
+
+function redoStep() {
+  const h = history.value;
+  if (!h || h.at === h.steps.length - 1) return say('Nothing to redo.', false, false, 'changes');
+  goToStep(h.at + 1);
+}
 
 // What plays now: the strip segment and the paragraph under the playhead.
 const activeSeg = computed(() => (last.value ? stripEntries.value.findIndex((e) => clock.t >= e.start && clock.t < e.end) : -1));
@@ -243,7 +319,7 @@ const activeGap = computed(() => {
 });
 
 const api = {
-  rows, gaps, draftSummary, activeSeg, activePara, activeGap, linkHover, linkEdit, movingFrom,
+  rows, gaps, draftSummary, history, goToStep, undoStep, redoStep, activeSeg, activePara, activeGap, linkHover, linkEdit, movingFrom,
   blocked, dismissBlocked, setCue, nudgeCue, clearCue, resetCue, discardDraft, tapNext, tapRow, selectRow, toggleFree,
 };
 export const useCues = () => api;

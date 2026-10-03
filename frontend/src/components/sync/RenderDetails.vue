@@ -1,12 +1,14 @@
-<!-- The last render's downloads, voice intro and warnings. -->
+<!-- The last render's downloads, voice intro and warnings; Discard and Apply while timing changes are pending. -->
 <script setup>
 import { computed } from 'vue';
 import Icon from '../ui/Icon.vue';
 import { config, draft, last, stale } from '../../state';
 import { fileUrl } from '../../lib/api';
 import { useWorkflow } from '../../composables/useWorkflow';
+import { useCues } from '../../composables/useCues';
 
-const { generate } = useWorkflow();
+const { generate, applyDraft } = useWorkflow();
+const { discardDraft } = useCues();
 
 const files = computed(() => {
   const l = last.value;
@@ -14,7 +16,7 @@ const files = computed(() => {
   return (config.value?.mp3 ? ['wav', 'mp3', 'srt'] : ['wav', 'srt']).map((ext) => ({ ext, name: `${l.name}.${ext}`, href: fileUrl(l.name, ext) }));
 });
 // The files hold the rendered timing only: with pending changes (or a changed script) they'd be the old version.
-// Pending changes are explained by the Apply bar right above, so only a changed script gets a hint here.
+// Pending changes have Apply on this row, so only a changed script gets a hint here.
 const locked = computed(() => (stale.value ? 'stale' : draft.value ? 'draft' : ''));
 const lockedTitle = computed(() => (locked.value === 'stale'
   ? 'The script changed since this render. Generate again to download the new version.'
@@ -42,6 +44,13 @@ const warnings = computed(() => last.value?.warnings || []);
       </template>
     </span>
     <span v-if="!locked" class="help">{{ offsetInfo }}</span>
+    <template v-if="draft">
+      <span class="spacer" />
+      <span class="draft-actions">
+        <button class="ghost sm" aria-label="Discard timing changes" title="Forget the pending timing changes and their history" @click="discardDraft()">Discard</button>
+        <button class="primary sm" aria-label="Apply timing changes" title="⌘↵. Write the timing into the script as [pause …] values and render again" @click="applyDraft()">Apply</button>
+      </span>
+    </template>
   </div>
   <div v-if="warnings.length" class="warnings">
     <div v-for="(w, i) in warnings" :key="i"><Icon name="alert" /><span>{{ w }}</span></div>
@@ -49,7 +58,8 @@ const warnings = computed(() => last.value?.warnings || []);
 </template>
 
 <style scoped>
-.meta { min-height: 28px; }
+.meta { min-height: 30px; }
+.draft-actions { display: inline-flex; gap: 6px; margin-left: auto; }
 .downloads { display: inline-flex; align-items: center; gap: 6px; }
 .downloads .label { color: var(--muted); font-size: 13px; margin-right: 2px; }
 .file { display: inline-flex; align-items: center; gap: 4px; height: 30px; padding: 0 10px; border: 1px solid var(--border-strong); border-radius: 7px; background: var(--surface); color: var(--text); font-size: 12px; font-weight: 650; letter-spacing: .03em; text-decoration: none; transition: border-color .12s, color .12s; }
