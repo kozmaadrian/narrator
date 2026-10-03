@@ -79,6 +79,7 @@ const onClick = (e) => { if (e.target === dialog.value && downOutside) toggleHel
             <li>An empty Start keeps the rendered gap after the paragraph before. A changed Start shows a ↺ chip with what it was and how far it moved; click it to put that Start back.</li>
             <li>A negative Start on ¶1 starts the voice before the video.</li>
             <li>Changes play live, with or without a video. A paragraph is never cut off: if the one before is still speaking, it waits for it.</li>
+            <li>Downloads (WAV, MP3, SRT) are locked while timing changes are pending: Apply renders the new version first.</li>
             <li>Subtitles (the switch under the video, or ⌥C) show the sentence being spoken on the video, with the timing you hear, also in fullscreen.</li>
           </ul>
         </section>
