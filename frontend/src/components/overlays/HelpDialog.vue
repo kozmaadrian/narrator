@@ -75,7 +75,7 @@ const onClick = (e) => { if (e.target === dialog.value && downOutside) toggleHel
             <li>The ⏸ row between two paragraphs is the pause before the next one. Green means your change resizes it: the new length, the difference, and what it was.</li>
             <li>An empty Start keeps the rendered gap after the paragraph before. The reset button puts back the rendered Start.</li>
             <li>A negative Start on ¶1 starts the voice before the video.</li>
-            <li>Changes play live. A paragraph is never cut off: if the one before is still speaking, it waits for it.</li>
+            <li>Changes play live, with or without a video. A paragraph is never cut off: if the one before is still speaking, it waits for it.</li>
           </ul>
         </section>
       </div>

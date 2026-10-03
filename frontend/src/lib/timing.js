@@ -34,8 +34,8 @@ export const renderedStarts = (last, count) => renderInfo(last, count).map((x) =
 // leaves that gap alone rather than gluing it on with [pause 0s]). A negative ¶1 Start makes the voice start
 // before the video.
 // Narration time = video time + lead; inside a segment, audio position = narration time + off.
-// count: paragraphs in the current script. Without a video the audio plays as rendered.
-export function schedule(last, count, cues, videoLoaded) {
+// count: paragraphs in the current script.
+export function schedule(last, count, cues) {
   const dur = last.duration, L0 = last.lead || 0, blocks = speechBlocks(last);
   const identity = { lead: L0, segs: [{ t0: 0, t1: dur, off: 0 }], waits: [], end: dur, info: renderInfo(last, count), changed: false };
   if (blocks.length !== count) return identity;
@@ -68,7 +68,7 @@ export function schedule(last, count, cues, videoLoaded) {
   const tail = segs[segs.length - 1];
   tail.t1 = Math.max(tail.t1, dur - tail.off);
   const changed = segs.length > 1 || Math.abs(segs[0].off) >= 0.005 || Math.abs(L - L0) >= 0.005;
-  if (!changed || !videoLoaded) return { ...identity, info, changed };
+  if (!changed) return { ...identity, info, changed };
   return { lead: L, segs, waits, end: tail.t1, info, changed };
 }
 

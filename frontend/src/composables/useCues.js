@@ -1,13 +1,13 @@
 // The paragraph table: pending Starts (the draft), taps, and what each row shows.
 import { computed, watch } from 'vue';
-import { draft, last, paraCount, paras, setStatus, tapIndex, videoLoaded } from '../state';
+import { draft, last, paraCount, paras, setStatus, tapIndex } from '../state';
 import { fmt } from '../lib/format';
 import { paragraphGaps } from '../lib/timing';
 import { useTimeline } from './useTimeline';
 import { usePlayback } from './usePlayback';
 
-const { base, refStarts, info, pending, playingInfo, rowStarts, lead, narrationEnd, stripEntries } = useTimeline();
-const { clock, clockEl, videoTime, seekTo } = usePlayback();
+const { base, refStarts, info, pending, rowStarts, lead, narrationEnd, stripEntries } = useTimeline();
+const { clock, hasMedia, videoTime, seekTo } = usePlayback();
 
 // A draft only lives while it lines up with the paragraphs and still differs from the rendered timing:
 // back to the rendered Starts, there is nothing to apply.
@@ -15,7 +15,7 @@ watch(() => !!draft.value && (draft.value.length !== paraCount.value || !pending
   (drop) => { if (drop) draft.value = null; }, { flush: 'sync' });
 watch(paraCount, (n) => { if (tapIndex.value > n) tapIndex.value = n; });
 
-const draftHint = () => (videoLoaded.value && last.value ? 'It plays live now; Apply writes it into the script.' : 'Apply writes it into the script.');
+const draftHint = () => (last.value ? 'It plays live now; Apply writes it into the script.' : 'Apply writes it into the script.');
 
 // The draft to edit: the pending one, or else every paragraph pinned at its rendered Start, so moving one
 // paragraph doesn't drag the ones after it along. Returned as a copy; assign it back to draft.
@@ -68,7 +68,7 @@ function discardDraft() {
 }
 
 function canTap() {
-  if (clockEl().src) return true;
+  if (hasMedia()) return true;
   setStatus('Load the video (or generate audio) first, then play it and tap.', true);
   return false;
 }
@@ -84,7 +84,7 @@ const tapRow = (i) => { if (canTap()) setCue(i, videoTime()); };
 // Click on a row: jump to where it plays now, and tap from there.
 function selectRow(i) {
   tapIndex.value = i;
-  const t = playingInfo.value[i]?.start ?? shownStart(i);
+  const t = info.value[i]?.start ?? shownStart(i);
   if (t != null) seekTo(t + lead.value);
 }
 
@@ -137,7 +137,7 @@ const activePara = computed(() => {
 // The paragraph whose leading silence is playing now.
 const activeGap = computed(() => {
   if (!last.value || clock.t >= narrationEnd.value) return -1;
-  const inf = playingInfo.value, L = lead.value;
+  const inf = info.value, L = lead.value;
   let from = 0;
   for (let i = 0; i < inf.length; i++) {
     const x = inf[i];

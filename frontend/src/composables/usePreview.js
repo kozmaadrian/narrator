@@ -8,7 +8,7 @@ import { usePlayback } from './usePlayback';
 import { useEditor } from './useEditor';
 
 const { callRender, setBusy } = useRender();
-const { pausePlayback, pauseClock } = usePlayback();
+const { pausePlayback } = usePlayback();
 const { previewText } = useEditor();
 
 const previewAudio = shallowRef(null);
@@ -25,7 +25,7 @@ async function preview() {
   if (busy.value) return;
   const text = previewText();
   if (!text.trim()) return;
-  pauseClock();
+  pausePlayback();
   setBusy(true, 'Rendering preview');
   try {
     const data = await callRender({ script: text, pronunciations: pronunciations.value, ...settingsPayload.value, preview: true });

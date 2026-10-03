@@ -3,8 +3,8 @@ import { computed } from 'vue';
 import { draft, last, paraCount, videoDuration, videoLoaded } from '../state';
 import { fixedStarts, placedEntries, renderedStarts, schedule } from '../lib/timing';
 
-const base = computed(() => (last.value ? schedule(last.value, paraCount.value, [], videoLoaded.value) : null));
-const sched = computed(() => (draft.value && base.value ? schedule(last.value, paraCount.value, draft.value, videoLoaded.value) : base.value));
+const base = computed(() => (last.value ? schedule(last.value, paraCount.value, []) : null));
+const sched = computed(() => (draft.value && base.value ? schedule(last.value, paraCount.value, draft.value) : base.value));
 const refStarts = computed(() => renderedStarts(last.value, paraCount.value));
 const info = computed(() => (sched.value ? sched.value.info : []));
 const currentStarts = computed(() => (draft.value ? fixedStarts(draft.value, info.value) : refStarts.value));
@@ -20,13 +20,11 @@ const lead = computed(() => (sched.value ? sched.value.lead : (last.value && las
 const narrationEnd = computed(() => (sched.value ? sched.value.end : last.value ? last.value.duration : 0));
 const totalDuration = computed(() => Math.max(narrationEnd.value, videoLoaded.value ? (videoDuration.value || 0) + lead.value : 0) || 1);
 const stripEntries = computed(() => placedEntries(last.value, sched.value));
-// Without a video the audio plays as rendered.
-const playingInfo = computed(() => (videoLoaded.value || !base.value ? info.value : base.value.info));
 // Per paragraph: narration time its speech starts.
 const rowStarts = computed(() => Array.from({ length: paraCount.value }, (_, i) => {
-  const s = playingInfo.value[i]?.start;
+  const s = info.value[i]?.start;
   return s != null ? s + lead.value : null;
 }));
 
-const api = { base, sched, refStarts, info, pending, lead, narrationEnd, totalDuration, stripEntries, playingInfo, rowStarts };
+const api = { base, sched, refStarts, info, pending, lead, narrationEnd, totalDuration, stripEntries, rowStarts };
 export const useTimeline = () => api;
