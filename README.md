@@ -48,12 +48,12 @@ You can set a Start two ways:
 - **Tap along:** play the video and press <kbd>⌥N</kbd> (or **Tap ¶N**) when the next paragraph should start. The row marked with an accent bar gets the current time, and the mark moves to the next row. Click any row to jump there and tap from that paragraph.
 - **Click to set:** pause anywhere and press a row's timer button. You can also type a time, nudge it with <kbd>↑</kbd>/<kbd>↓</kbd> (0.1 s, or 1 s with ⇧), or clear the field so the paragraph simply follows the one before it.
 
-**Later paragraphs**, above the table, decides what a Start change does to the paragraphs after it:
+Each row has a **chain button** next to its Start. It decides what a change to that Start does to the paragraphs after it:
 
-- **Move along** (the default): they all shift by the same amount, so their Starts change and the pauses between them stay as they are. Only the pause before the changed paragraph is resized.
-- **Stay in place:** they keep their Starts. Only the pauses before and after the changed paragraph get longer or shorter. A paragraph can't start so late that it would run into the next one; the Start stops at the latest time that fits (on the 0.1 s grid), and the status line says which paragraph is in the way. Switch to Move along to go further.
+- **Linked** (🔗, the default): they move along by the same amount, so the pauses between them stay as they are and only the pause before the changed paragraph is resized. While you edit a Start, or point at its chain button, the rows that will move are tinted.
+- **Unlinked** (amber, broken chain): the paragraph moves on its own. The paragraphs after it keep their Starts, so only the pauses before and after it get longer or shorter. It can't start so late that it would run into the next paragraph; the Start stops at the latest time that fits (on the 0.1 s grid), and the status line says which paragraph is in the way. Link it to go further.
 
-The choice applies to typing, nudging, tapping, clearing, and the reset button, and it's remembered across reloads. Changed Starts are accent-colored, listed in the bar above the table, and get a reset button, which puts the rendered Start back. The pauses they resize turn green. **Discard** drops all of them. Pending changes survive a page reload as long as the script is unchanged.
+The link applies to typing, nudging, tapping, clearing, and the reset button. It belongs to the paragraph's text, so it survives Apply and reloads. Changed Starts are accent-colored, listed in the bar above the table, and get a reset button, which puts the rendered Start back. The pauses they resize turn green. **Discard** drops all of them. Pending changes survive a page reload as long as the script is unchanged.
 
 **Live preview:** changes play right away, with or without a video, using the current render. If a paragraph now starts later, the audio waits in silence until then (green on the timeline strip). If it starts earlier, the audio jumps ahead to it. A paragraph is never cut off: if the previous one is still speaking at its Start, it keeps its usual gap after it instead, and its row says so. The preview uses Web Audio for sample-accurate jumps, which the browser may only start after your first click or key press. At speeds other than 1×, the voice pitch shifts.
 

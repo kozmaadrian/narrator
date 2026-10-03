@@ -9,6 +9,7 @@ const props = defineProps({
   gap: { type: Object, required: true },
   index: { type: Number, required: true },
   active: { type: Boolean, default: false },
+  moving: { type: Boolean, default: false },
 });
 
 const delta = computed(() => {
@@ -25,7 +26,7 @@ const title = computed(() => {
 </script>
 
 <template>
-  <tr class="gap" :class="{ changed: gap.changed, playing: active }" :title="title">
+  <tr class="gap" :class="{ changed: gap.changed, playing: active, moving }" :title="title">
     <td class="n"><span class="rail" /></td>
     <td colspan="3">
       <div class="line">
@@ -53,6 +54,8 @@ td.n { width: 1%; padding-left: 16px; }
 .was { text-decoration: line-through; text-decoration-color: var(--subtle); font-variant-numeric: tabular-nums; }
 code.src { padding: 1px 6px; border-radius: 5px; background: var(--surface-3); color: var(--muted); font: 11.5px var(--mono); }
 tr.changed .pill { border-color: var(--wait-line); background: var(--wait-bg); color: var(--wait-ink); }
+tr.moving td { background: color-mix(in srgb, var(--accent-weak) 70%, var(--surface)); }
+tr.moving td.n { box-shadow: inset 3px 0 0 var(--accent-line); }
 tr.playing td { background: var(--pause-bg); }
 tr.playing .pill { border-color: var(--pause); background: var(--pause); color: #fff; }
 tr.changed.playing td { background: var(--wait-bg); }

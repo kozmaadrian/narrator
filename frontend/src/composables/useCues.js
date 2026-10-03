@@ -1,6 +1,6 @@
 // The paragraph table: pending Starts (the draft), taps, and what each row shows.
-import { computed, watch } from 'vue';
-import { draft, last, moveMode, paraCount, paras, setStatus, tapIndex } from '../state';
+import { computed, ref, watch } from 'vue';
+import { draft, freeParas, last, paraCount, paras, setStatus, tapIndex } from '../state';
 import { fmt } from '../lib/format';
 import { paragraphGaps, schedule } from '../lib/timing';
 import { useTimeline } from './useTimeline';
@@ -18,7 +18,7 @@ watch(paraCount, (n) => { if (tapIndex.value > n) tapIndex.value = n; });
 const draftHint = () => (last.value ? 'It plays live now; Apply writes it into the script.' : 'Apply writes it into the script.');
 
 // The draft to edit: the pending one, or else every paragraph pinned at its rendered Start, so the move
-// mode alone decides what happens to the ones after a changed paragraph. Returned as a copy; assign it back.
+// changed paragraph's link alone decides what happens to the ones after it. Returned as a copy; assign it back.
 function draftCopy() {
   const n = paraCount.value, d = draft.value, ref = refStarts.value;
   if (d && d.length === n) return [...d];
@@ -29,10 +29,33 @@ const shownStart = (i) => (draft.value ? draft.value[i] : refStarts.value[i]) ??
 
 const signed = (t) => `${t > 0 ? '+' : '−'}${Math.abs(t).toFixed(1)}s`;
 
+// Each paragraph is linked to the ones after it (a Start change takes them along) unless it is unlinked
+// (it moves on its own). Kept by paragraph text, so it survives Apply and edits elsewhere in the script.
+const isFree = (i) => !!paras.value[i] && freeParas.value.has(paras.value[i].snippet);
+const followers = (i) => { const n = paraCount.value; return i + 2 === n ? `¶${n}` : `¶${i + 2}–¶${n}`; };
+
+function toggleFree(i) {
+  const p = paras.value[i];
+  if (!p || i >= paraCount.value - 1) return;
+  const f = new Set(freeParas.value), free = !f.has(p.snippet);
+  if (free) f.add(p.snippet); else f.delete(p.snippet);
+  freeParas.value = f;
+  setStatus(free ? `¶${i + 1} moves on its own now: changing its Start leaves ${followers(i)} where they are.`
+    : `¶${i + 1} is linked again: changing its Start moves ${followers(i)} along with it.`);
+}
+
+// The paragraph whose link is pointed at, or else whose Start is being edited: the table tints the rows
+// that would move with it.
+const linkHover = ref(-1), linkEdit = ref(-1);
+const movingFrom = computed(() => {
+  const i = linkHover.value >= 0 ? linkHover.value : linkEdit.value;
+  return i >= 0 && !isFree(i) ? i + 1 : Infinity;
+});
+
 // Puts ¶i's Start at value (null: the rendered gap after the paragraph before) and takes the paragraphs
-// after it along or keeps them in place, per moveMode. Positions are where the paragraphs play now, so a
-// paragraph pushed along by an overlap gets that position as its Start. Returns what happened:
-// { value, delta: how far ¶i moved, blocker: in 'stay' mode, the paragraph that capped a later Start }.
+// after it along, or keeps them in place when ¶i is unlinked. Positions are where the paragraphs play now,
+// so a paragraph pushed along by an overlap gets that position as its Start. Returns what happened:
+// { value, delta: how far ¶i moved, blocker: for an unlinked ¶i, the paragraph that capped a later Start }.
 function applyMove(i, value) {
   const n = paraCount.value, before = info.value, d = draftCopy(), old = before[i]?.start;
   if (!last.value || before.length !== n || old == null) {
@@ -44,7 +67,7 @@ function applyMove(i, value) {
   const pinned = [];
   for (let j = i + 1; j < n; j++) if (d[j] != null && before[j]?.start != null) pinned.push(j);
   let blocker = -1;
-  if (moveMode.value === 'stay') {
+  if (isFree(i)) {
     pinned.forEach((j) => { d[j] = before[j].start; });
     // A later Start can't push the paragraphs after it: take the latest one on the 0.1 s grid that fits.
     const blocks = (x) => { const s = startsWith(x); return pinned.find((j) => s[j].start > before[j].start + 0.001) ?? -1; };
@@ -70,14 +93,14 @@ function applyMove(i, value) {
 // How the paragraphs after ¶i took the move, for the status line ('' when there are none).
 function followersNote(i, r) {
   if (i >= paraCount.value - 1 || Math.abs(r.delta) < 0.05) return '';
-  return moveMode.value === 'stay' ? '; the paragraphs after it stay in place' : `; the paragraphs after it move along (${signed(r.delta)})`;
+  return isFree(i) ? `; ${followers(i)} stay where they are` : `; ${followers(i)} move along with it (${signed(r.delta)})`;
 }
 
-// In 'stay' mode, a Start the paragraph after it doesn't leave room for.
+// An unlinked paragraph asked to start later than the one after it leaves room for.
 function blockedStatus(i, r) {
   const where = `¶${r.blocker + 1} stays at ${fmt(r.blockerAt)}`;
   const head = r.delta > 0.05 ? `¶${i + 1} can start at ${fmt(r.value)} at the latest: ${where}.` : `¶${i + 1} can't start later: ${where}.`;
-  setStatus(`${head} To go further, choose “Move along” for later paragraphs.`, true);
+  setStatus(`${head} To go further, link ¶${i + 1} (the chain button on its row) so the paragraphs after it move along.`, true);
 }
 
 function setCue(i, t, advance = true) {
@@ -154,7 +177,7 @@ const rows = computed(() => {
   return paras.value.map((p, i) => {
     const v = (d ? d[i] : ref[i]) ?? null, x = inf[i] || {};
     const row = {
-      snippet: p.snippet, value: v, est: x.start ?? null, pending: pend[i], rendered: ref[i] ?? null,
+      snippet: p.snippet, value: v, est: x.start ?? null, pending: pend[i], rendered: ref[i] ?? null, free: isFree(i),
       length: x.end != null ? `${(x.end - x.start).toFixed(1)}s` : '', notes: cueNotes(i, v, x, prev),
     };
     if (v != null) prev = Math.max(prev, v);
@@ -208,7 +231,7 @@ const activeGap = computed(() => {
 });
 
 const api = {
-  rows, gaps, draftSummary, tapLabel, activeSeg, activePara, activeGap,
-  setCue, nudgeCue, clearCue, resetCue, discardDraft, tapNext, tapRow, selectRow,
+  rows, gaps, draftSummary, tapLabel, activeSeg, activePara, activeGap, linkHover, linkEdit, movingFrom,
+  setCue, nudgeCue, clearCue, resetCue, discardDraft, tapNext, tapRow, selectRow, toggleFree,
 };
 export const useCues = () => api;

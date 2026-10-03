@@ -11,6 +11,7 @@ const props = defineProps({
   est: { type: Number, default: null },
   pending: { type: Boolean, default: false },
 });
+const emit = defineEmits(['focus', 'blur']);
 const { setCue, nudgeCue, clearCue } = useCues();
 const el = ref(null);
 
@@ -53,6 +54,8 @@ function onChange() {
     :title="title"
     @keydown="onKeydown"
     @change="onChange"
+    @focus="emit('focus')"
+    @blur="emit('blur')"
   >
 </template>
 

@@ -6,7 +6,7 @@ import CueRow from './CueRow.vue';
 import { useCues } from '../../composables/useCues';
 import { usePlayback } from '../../composables/usePlayback';
 
-const { rows, gaps, activePara, activeGap } = useCues();
+const { rows, gaps, activePara, activeGap, movingFrom } = useCues();
 const { clock } = usePlayback();
 const box = ref(null);
 const rowEls = [], gapEls = [];
@@ -40,15 +40,15 @@ watch([activePara, activeGap], () => { if (clock.playing) follow(); }, { flush: 
       <thead>
         <tr>
           <th>¶</th>
-          <th title="Where the paragraph starts in the video. ↑/↓ nudge (⇧ = 1 s), empty = keep the rendered gap after the previous paragraph.">Start</th>
+          <th title="Where the paragraph starts in the video. ↑/↓ nudge (⇧ = 1 s), empty = keep the rendered gap after the previous paragraph. The chain button: linked, the paragraphs after it move along; unlinked, it moves on its own.">Start</th>
           <th>Length</th>
           <th>Text</th>
         </tr>
       </thead>
       <tbody>
         <template v-for="(row, i) in rows" :key="i">
-          <CueGap v-if="gaps[i]" :ref="(el) => { gapEls[i] = el; }" :gap="gaps[i]" :index="i" :active="i === activeGap" />
-          <CueRow :ref="(el) => { rowEls[i] = el; }" :row="row" :index="i" />
+          <CueGap v-if="gaps[i]" :ref="(el) => { gapEls[i] = el; }" :gap="gaps[i]" :index="i" :active="i === activeGap" :moving="i > movingFrom" />
+          <CueRow :ref="(el) => { rowEls[i] = el; }" :row="row" :index="i" :moving="i >= movingFrom" />
         </template>
         <tr v-if="!rows.length"><td colspan="4" class="empty">No paragraphs yet.</td></tr>
       </tbody>
