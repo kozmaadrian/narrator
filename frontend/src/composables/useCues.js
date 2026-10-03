@@ -52,6 +52,14 @@ const movingFrom = computed(() => {
   return i >= 0 && !isFree(i) ? i + 1 : Infinity;
 });
 
+// The last later Start an unlinked paragraph couldn't take, shown between the paragraph in the way and the
+// one before it: { para, at: the paragraph in the way, text, id }. Any other timing, link or script change
+// clears it.
+const blocked = ref(null);
+let blockedId = 0;
+watch([draft, paras, freeParas], () => { blocked.value = null; }, { flush: 'sync' });
+const dismissBlocked = () => { blocked.value = null; };
+
 // Puts ¶i's Start at value (null: the rendered gap after the paragraph before) and takes the paragraphs
 // after it along, or keeps them in place when ¶i is unlinked. Positions are where the paragraphs play now,
 // so a paragraph pushed along by an overlap gets that position as its Start. Returns what happened:
@@ -98,8 +106,12 @@ function followersNote(i, r) {
 
 // An unlinked paragraph asked to start later than the one after it leaves room for.
 function blockedStatus(i, r) {
-  const where = `¶${r.blocker + 1} stays at ${fmt(r.blockerAt)}`;
-  const head = r.delta > 0.05 ? `¶${i + 1} can start at ${fmt(r.value)} at the latest: ${where}.` : `¶${i + 1} can't start later: ${where}.`;
+  const where = `¶${r.blocker + 1} stays at ${fmt(r.blockerAt)}`, moved = r.delta > 0.05;
+  const head = moved ? `¶${i + 1} can start at ${fmt(r.value)} at the latest: ${where}.` : `¶${i + 1} can't start later: ${where}.`;
+  blocked.value = {
+    para: i, at: r.blocker, id: ++blockedId,
+    text: `${moved ? `¶${i + 1} can't go past ${fmt(r.value)}` : `¶${i + 1} can't start later`}: ${where}.`,
+  };
   setStatus(`${head} To go further, link ¶${i + 1} (the chain button on its card) so the paragraphs after it move along.`, true);
 }
 
@@ -232,6 +244,6 @@ const activeGap = computed(() => {
 
 const api = {
   rows, gaps, draftSummary, tapLabel, activeSeg, activePara, activeGap, linkHover, linkEdit, movingFrom,
-  setCue, nudgeCue, clearCue, resetCue, discardDraft, tapNext, tapRow, selectRow, toggleFree,
+  blocked, dismissBlocked, setCue, nudgeCue, clearCue, resetCue, discardDraft, tapNext, tapRow, selectRow, toggleFree,
 };
 export const useCues = () => api;

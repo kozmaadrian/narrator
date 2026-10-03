@@ -69,7 +69,7 @@ function onClick(e) {
           @mouseleave="mark('hover', false)"
           @focus="mark('edit', true)"
           @blur="mark('edit', false)"
-        ><Icon :name="row.free ? 'unlink' : 'link'" /><span v-if="row.free">Unlinked</span></button>
+        ><Icon :name="row.free ? 'unlink' : 'link'" /></button>
         <span v-else class="act-slot" />
         <button class="act" title="Set the Start to the current video time" aria-label="Set to the current video time" @click="tapRow(index)"><Icon name="timer" /></button>
       </div>
@@ -106,7 +106,7 @@ function onClick(e) {
 .card:hover .act, .card.active .act, .card:focus-within .act, .act.free { opacity: 1; }
 .act:hover { background: var(--surface-3); color: var(--text); }
 .act:focus-visible { outline: 2px solid var(--ring); outline-offset: 1px; opacity: 1; }
-.act.free, .act.free:hover { padding: 0 9px 0 7px; background: var(--pause-bg); color: var(--pause-ink); box-shadow: inset 0 0 0 1px var(--pause-line); }
+.act.free, .act.free:hover { background: var(--pause-bg); color: var(--pause-ink); box-shadow: inset 0 0 0 1px var(--pause-line); }
 
 /* Text and notes line up with the Start field, after the number. */
 .txt, .note { margin: 0; padding-left: calc(var(--num) + 10px); }

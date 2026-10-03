@@ -74,6 +74,7 @@ const onClick = (e) => { if (e.target === dialog.value && downOutside) toggleHel
             <li>Click a paragraph card to jump there and tap from it, or pause and press the card's timer button.</li>
             <li>The ⏸ pill between two cards is the pause before the next paragraph. Green means your change resizes it: old → new, then the difference.</li>
             <li>The chain button next to a Start links the paragraph to the ones after it: changing its Start moves them all along, and the cards that will move are tinted while you edit. Click it to unlink, so the paragraph moves on its own and only the pauses around it change.</li>
+            <li>An unlinked paragraph can't run into the next one. If a Start is too late, a red note between the two cards says which paragraph is in the way; its Link button lets the paragraphs after it move along.</li>
             <li>An empty Start keeps the rendered gap after the paragraph before. A changed Start shows a ↺ chip with what it was and how far it moved; click it to put that Start back.</li>
             <li>A negative Start on ¶1 starts the voice before the video.</li>
             <li>Changes play live, with or without a video. A paragraph is never cut off: if the one before is still speaking, it waits for it.</li>

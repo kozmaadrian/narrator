@@ -6,7 +6,7 @@ import CueRow from './CueRow.vue';
 import { useCues } from '../../composables/useCues';
 import { usePlayback } from '../../composables/usePlayback';
 
-const { rows, gaps, activePara, activeGap, movingFrom } = useCues();
+const { rows, gaps, activePara, activeGap, movingFrom, blocked } = useCues();
 const { clock } = usePlayback();
 const box = ref(null);
 const rowEls = [], gapEls = [];
@@ -29,6 +29,15 @@ function follow() {
   el.scrollTo({ top: Math.max(0, top - above), behavior: smooth ? 'smooth' : 'auto' });
 }
 
+// A move that was blocked: bring its note (between the two paragraphs) into view.
+watch(() => blocked.value?.id, () => {
+  const el = box.value, note = blocked.value && gapEls[blocked.value.at]?.$el;
+  if (!el || !note) return;
+  const r = note.getBoundingClientRect(), b = el.getBoundingClientRect();
+  if (r.bottom > b.bottom) el.scrollTop += r.bottom - b.bottom + 8;
+  else if (r.top < b.top) el.scrollTop -= b.top - r.top + 8;
+}, { flush: 'post' });
+
 // After a seek, once the clock has moved there.
 watch(() => clock.seeks, async () => { await frame(); await frame(); follow(); });
 watch([activePara, activeGap], () => { if (clock.playing) follow(); }, { flush: 'post' });
@@ -37,7 +46,15 @@ watch([activePara, activeGap], () => { if (clock.playing) follow(); }, { flush: 
 <template>
   <div ref="box" class="cards">
     <template v-for="(row, i) in rows" :key="i">
-      <CueGap v-if="gaps[i]" :ref="(el) => { gapEls[i] = el; }" :gap="gaps[i]" :index="i" :active="i === activeGap" :moving="i > movingFrom" />
+      <CueGap
+        v-if="gaps[i] || blocked?.at === i"
+        :ref="(el) => { gapEls[i] = el; }"
+        :gap="gaps[i]"
+        :index="i"
+        :active="i === activeGap"
+        :moving="i > movingFrom"
+        :blocked="blocked?.at === i ? blocked : null"
+      />
       <div v-else-if="i" class="joint" :class="{ moving: i > movingFrom }" />
       <CueRow :ref="(el) => { rowEls[i] = el; }" :row="row" :index="i" :moving="i >= movingFrom" />
     </template>
