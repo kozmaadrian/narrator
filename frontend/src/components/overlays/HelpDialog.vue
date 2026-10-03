@@ -71,10 +71,10 @@ const onClick = (e) => { if (e.target === dialog.value && downOutside) toggleHel
             <li>Pronunciation: select a word, press Add, and spell it the way it should sound.</li>
           </ul>
           <ul v-else class="notes">
-            <li>Click a row to jump there and tap from it, or pause and press the row's timer button.</li>
-            <li>The ⏸ row between two paragraphs is the pause before the next one. Green means your change resizes it: the new length, the difference, and what it was.</li>
-            <li>The chain button next to a Start links the paragraph to the ones after it: changing its Start moves them all along, and the rows that will move are tinted while you edit. Click it to unlink, so the paragraph moves on its own and only the pauses around it change.</li>
-            <li>An empty Start keeps the rendered gap after the paragraph before. The reset button puts back the rendered Start.</li>
+            <li>Click a paragraph card to jump there and tap from it, or pause and press the card's timer button.</li>
+            <li>The ⏸ pill between two cards is the pause before the next paragraph. Green means your change resizes it: old → new, then the difference.</li>
+            <li>The chain button next to a Start links the paragraph to the ones after it: changing its Start moves them all along, and the cards that will move are tinted while you edit. Click it to unlink, so the paragraph moves on its own and only the pauses around it change.</li>
+            <li>An empty Start keeps the rendered gap after the paragraph before. A changed Start shows a ↺ chip with what it was and how far it moved; click it to put that Start back.</li>
             <li>A negative Start on ¶1 starts the voice before the video.</li>
             <li>Changes play live, with or without a video. A paragraph is never cut off: if the one before is still speaking, it waits for it.</li>
           </ul>

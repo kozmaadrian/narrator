@@ -13,8 +13,8 @@ let intro = null;           // voice intro, video held on frame 0: { t: narratio
 let resumeVideo = false;    // next video 'play' event comes from the end of the intro
 let settleUntil = 0;
 
-// What the transport, strip and table draw; updated every frame by tick(). seeks counts jumps (strip, keys,
-// the video's own scrubber), so the table can bring the new spot into view.
+// What the transport, strip and paragraph cards draw; updated every frame by tick(). seeks counts jumps (strip, keys,
+// the video's own scrubber), so the card list can bring the new spot into view.
 const clock = reactive({ t: 0, playing: false, intro: false, seeks: 0 });
 
 // Something to play: the video, or else the last render.

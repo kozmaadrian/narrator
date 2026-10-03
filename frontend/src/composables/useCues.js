@@ -1,4 +1,4 @@
-// The paragraph table: pending Starts (the draft), taps, and what each row shows.
+// The paragraph cards: pending Starts (the draft), taps, and what each card shows.
 import { computed, ref, watch } from 'vue';
 import { draft, freeParas, last, paraCount, paras, setStatus, tapIndex } from '../state';
 import { fmt } from '../lib/format';
@@ -44,7 +44,7 @@ function toggleFree(i) {
     : `¶${i + 1} is linked again: changing its Start moves ${followers(i)} along with it.`);
 }
 
-// The paragraph whose link is pointed at, or else whose Start is being edited: the table tints the rows
+// The paragraph whose link is pointed at, or else whose Start is being edited: the list tints the cards
 // that would move with it.
 const linkHover = ref(-1), linkEdit = ref(-1);
 const movingFrom = computed(() => {
@@ -100,7 +100,7 @@ function followersNote(i, r) {
 function blockedStatus(i, r) {
   const where = `¶${r.blocker + 1} stays at ${fmt(r.blockerAt)}`;
   const head = r.delta > 0.05 ? `¶${i + 1} can start at ${fmt(r.value)} at the latest: ${where}.` : `¶${i + 1} can't start later: ${where}.`;
-  setStatus(`${head} To go further, link ¶${i + 1} (the chain button on its row) so the paragraphs after it move along.`, true);
+  setStatus(`${head} To go further, link ¶${i + 1} (the chain button on its card) so the paragraphs after it move along.`, true);
 }
 
 function setCue(i, t, advance = true) {
@@ -147,13 +147,13 @@ function canTap() {
 
 function tapNext() {
   if (!canTap()) return;
-  if (tapIndex.value >= paraCount.value) return setStatus('That was the last paragraph. Click a paragraph in the table to tap from there again.');
+  if (tapIndex.value >= paraCount.value) return setStatus('That was the last paragraph. Click a paragraph card to tap from there again.');
   setCue(tapIndex.value, videoTime());
 }
 
 const tapRow = (i) => { if (canTap()) setCue(i, videoTime()); };
 
-// Click on a row: jump to where it plays now, and tap from there.
+// Click on a card: jump to where it plays now, and tap from there.
 function selectRow(i) {
   tapIndex.value = i;
   const t = info.value[i]?.start ?? shownStart(i);

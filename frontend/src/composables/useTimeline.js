@@ -1,4 +1,4 @@
-// Where the last render plays now: its schedule with the pending Starts, and what the strip and table show.
+// Where the last render plays now: its schedule with the pending Starts, and what the strip and cards show.
 import { computed } from 'vue';
 import { draft, last, paraCount, videoDuration, videoLoaded } from '../state';
 import { fixedStarts, placedEntries, renderedStarts, schedule } from '../lib/timing';

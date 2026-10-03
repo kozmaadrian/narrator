@@ -58,7 +58,6 @@ button.sm { height: 28px; padding: 0 9px; font-size: 12.5px; }
 button:focus-visible, a:focus-visible { outline: none; box-shadow: 0 0 0 3px var(--ring); }
 .icon-btn { width: 30px; height: 30px; padding: 0; margin-left: 2px; background: transparent; border-color: transparent; box-shadow: none; color: var(--muted); }
 .icon-btn:hover:not(:disabled) { background: var(--surface-3); border-color: transparent; color: var(--text); }
-.icon-btn.off { visibility: hidden; }
 input:not([type=checkbox]):not([type=range]), select { height: 34px; border: 1px solid var(--border-strong); border-radius: 8px; padding: 0 10px; background: var(--surface); transition: border-color .12s, box-shadow .12s; }
 input:focus, select:focus, textarea:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px var(--ring); }
 select { appearance: none; -webkit-appearance: none; padding-right: 30px; cursor: pointer; background: var(--surface) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%238b93a3' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E") no-repeat right 10px center / 14px; }
