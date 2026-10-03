@@ -1,5 +1,5 @@
-<!-- Pending timing changes (Discard / Apply) and what became of them, then the recording, the transport
-     with the timeline strip, and the last render's files and warnings. -->
+<!-- The recording, the transport with the timeline strip, the last render's files and warnings, then
+     pending timing changes (Discard / Apply) and what became of them. -->
 <script setup>
 import VideoPanel from './VideoPanel.vue';
 import TransportBar from './TransportBar.vue';
@@ -11,8 +11,6 @@ import { draft } from '../../state';
 
 <template>
   <section class="panel player">
-    <DraftBar v-if="draft" />
-    <StatusBar where="changes" />
     <VideoPanel />
     <TransportBar />
     <div class="legend" aria-hidden="true">
@@ -22,6 +20,8 @@ import { draft } from '../../state';
     </div>
     <StatusBar where="sync" />
     <RenderDetails />
+    <DraftBar v-if="draft" />
+    <StatusBar where="changes" />
   </section>
 </template>
 

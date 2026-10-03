@@ -1,5 +1,5 @@
 <!-- Paragraph timing: what the card buttons do, messages about the cards, and the cards themselves.
-     Pending changes (Discard / Apply) sit above the video. -->
+     Pending changes (Discard / Apply) sit under the player's downloads. -->
 <script setup>
 import Icon from '../ui/Icon.vue';
 import StatusBar from '../ui/StatusBar.vue';
