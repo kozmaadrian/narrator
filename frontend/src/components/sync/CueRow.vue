@@ -1,5 +1,5 @@
-<!-- A paragraph card: its Start (editable, with what it was before the change), its spoken length, the link to
-     the paragraphs after it and the tap button, then its text and timing notes. -->
+<!-- A paragraph card: the link to the paragraphs after it and the tap button, its Start (editable, with what it
+     was before the change) and its spoken length, then its text and timing notes. -->
 <script setup>
 import { computed } from 'vue';
 import Icon from '../ui/Icon.vue';
@@ -50,12 +50,6 @@ function onClick(e) {
   >
     <div class="head">
       <span class="num" :title="`¶${index + 1}`">{{ index + 1 }}</span>
-      <CueTimeInput :index="index" :value="row.value" :est="row.est" :pending="row.pending" @focus="mark('edit', true)" @blur="mark('edit', false)" />
-      <button v-if="was" class="was" :title="`Changed${shift ? ` by ${shift}` : ''}. Click to put back ${was}, as rendered.`" @click="resetCue(index)">
-        <Icon name="reset" /><span class="old">{{ was }}</span><span v-if="shift" class="shift">{{ shift }}</span>
-      </button>
-      <span class="spacer" />
-      <span v-if="row.length" class="len" title="How long the paragraph is spoken"><Icon name="wave" />{{ row.length }}</span>
       <div class="actions">
         <button
           v-if="!lastRow"
@@ -73,6 +67,12 @@ function onClick(e) {
         <span v-else class="act-slot" />
         <button class="act" title="Set the Start to the current video time" aria-label="Set to the current video time" @click="tapRow(index)"><Icon name="timer" /></button>
       </div>
+      <CueTimeInput :index="index" :value="row.value" :est="row.est" :pending="row.pending" @focus="mark('edit', true)" @blur="mark('edit', false)" />
+      <button v-if="was" class="was" :title="`Changed${shift ? ` by ${shift}` : ''}. Click to put back ${was}, as rendered.`" @click="resetCue(index)">
+        <Icon name="reset" /><span class="old">{{ was }}</span><span v-if="shift" class="shift">{{ shift }}</span>
+      </button>
+      <span class="spacer" />
+      <span v-if="row.length" class="len" title="How long the paragraph is spoken"><Icon name="wave" />{{ row.length }}</span>
     </div>
     <p class="txt">{{ row.snippet }}</p>
     <p v-for="(note, k) in row.notes" :key="k" class="note" :class="{ info: note.info }"><Icon :name="note.info ? 'info' : 'alert'" />{{ note.text }}</p>
@@ -99,7 +99,7 @@ function onClick(e) {
 .len { display: inline-flex; align-items: center; gap: 5px; color: var(--subtle); font-size: 12px; font-variant-numeric: tabular-nums; }
 .len .i { width: 13px; height: 13px; }
 
-.actions { display: flex; align-items: center; gap: 2px; margin-left: 4px; }
+.actions { display: flex; align-items: center; gap: 2px; }
 .act { display: inline-flex; align-items: center; justify-content: center; gap: 5px; height: 28px; min-width: 28px; padding: 0 6px; border: 0; border-radius: 7px; background: transparent; box-shadow: none; color: var(--subtle); font: 600 11.5px var(--ui-font); cursor: pointer; opacity: .7; transition: opacity .12s, background .12s, color .12s; }
 .act .i { width: 15px; height: 15px; }
 .act-slot { width: 28px; }
@@ -108,7 +108,7 @@ function onClick(e) {
 .act:focus-visible { outline: 2px solid var(--ring); outline-offset: 1px; opacity: 1; }
 .act.free, .act.free:hover { background: var(--pause-bg); color: var(--pause-ink); box-shadow: inset 0 0 0 1px var(--pause-line); }
 
-/* Text and notes line up with the Start field, after the number. */
+/* Text and notes line up after the number. */
 .txt, .note { margin: 0; padding-left: calc(var(--num) + 10px); }
 .txt { margin-top: 6px; color: color-mix(in srgb, var(--text) 86%, var(--surface)); font-size: 13.5px; line-height: 1.55; text-wrap: pretty; }
 .card.active .txt, .card:hover .txt { color: var(--text); }

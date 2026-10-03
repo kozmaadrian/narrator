@@ -1,28 +1,18 @@
 <!-- The recording, the transport with the timeline strip, and the last render's files and warnings. -->
 <script setup>
-import Icon from '../ui/Icon.vue';
 import VideoPanel from './VideoPanel.vue';
 import TransportBar from './TransportBar.vue';
 import RenderDetails from './RenderDetails.vue';
-import { useCues } from '../../composables/useCues';
-
-const { tapLabel, tapNext } = useCues();
 </script>
 
 <template>
   <section class="panel player">
     <VideoPanel />
     <TransportBar />
-    <div class="row">
-      <div class="legend">
-        <span><i class="sw speech" />Paragraph</span>
-        <span><i class="sw pause" />Pause</span>
-        <span><i class="sw wait" />Added pause</span>
-      </div>
-      <span class="spacer" />
-      <button title="⌥N. While the video plays, sets the highlighted paragraph's start to now" @click="tapNext()">
-        <Icon name="timer" /><span>{{ tapLabel }}</span>
-      </button>
+    <div class="legend">
+      <span><i class="sw speech" />Paragraph</span>
+      <span><i class="sw pause" />Pause</span>
+      <span><i class="sw wait" />Added pause</span>
     </div>
     <RenderDetails />
   </section>

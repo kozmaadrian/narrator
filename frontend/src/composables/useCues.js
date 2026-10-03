@@ -217,7 +217,6 @@ const changedList = computed(() => {
 const changedCount = computed(() => pending.value.filter(Boolean).length);
 const draftSummary = computed(() => (draft.value
   ? `${changedList.value.join(', ')} changed. Apply writes ${changedCount.value > 1 ? 'them' : 'it'} into the script as [pause …] values.` : ''));
-const tapLabel = computed(() => (tapIndex.value < paraCount.value ? `Tap ¶${tapIndex.value + 1}` : 'All set'));
 
 // What plays now: the strip segment and the paragraph under the playhead.
 const activeSeg = computed(() => (last.value ? stripEntries.value.findIndex((e) => clock.t >= e.start && clock.t < e.end) : -1));
@@ -243,7 +242,7 @@ const activeGap = computed(() => {
 });
 
 const api = {
-  rows, gaps, draftSummary, tapLabel, activeSeg, activePara, activeGap, linkHover, linkEdit, movingFrom,
+  rows, gaps, draftSummary, activeSeg, activePara, activeGap, linkHover, linkEdit, movingFrom,
   blocked, dismissBlocked, setCue, nudgeCue, clearCue, resetCue, discardDraft, tapNext, tapRow, selectRow, toggleFree,
 };
 export const useCues = () => api;
