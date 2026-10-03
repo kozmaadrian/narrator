@@ -15,6 +15,7 @@ from pathlib import Path
 import uvicorn
 from fastapi import FastAPI, HTTPException
 from fastapi.responses import FileResponse, HTMLResponse, StreamingResponse
+from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field
 
 from narrate import DEFAULT_VOICE, ROOT, Narrator, RenderCancelled, to_srt, write_wav
@@ -29,6 +30,8 @@ FFMPEG = shutil.which("ffmpeg")
 OUTPUT_DIR.mkdir(exist_ok=True)
 narrator = Narrator()
 app = FastAPI(title="Narrator")
+# The UI is built from frontend/ (Vue) into static/: index.html plus its hashed assets.
+app.mount("/assets", StaticFiles(directory=STATIC_DIR / "assets", check_dir=False), name="assets")
 jobs: dict[str, threading.Event] = {}  # running renders: job id -> cancel flag
 
 

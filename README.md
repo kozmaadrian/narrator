@@ -59,3 +59,28 @@ Paragraph 1 can take a negative Start, e.g. `-0:02.5`. The voice then starts 2.5
 `[at …]` cues are no longer supported. Scripts that still have them are converted when the page loads: the cues are removed and their times become pending Starts on 2 · Sync, ready to Apply.
 
 Outputs (WAV, MP3, SRT) are written to `output/`.
+
+## Frontend (Vue 3)
+
+The UI source is in `frontend/`, a Vite + Vue 3 app. `static/` holds its build output, which `app.py` serves, so the app runs without Node. Rebuild after editing the frontend:
+
+```bash
+cd frontend
+npm install
+npm run build          # writes ../static/
+npm run dev            # http://localhost:5173 with hot reload; /api is proxied to app.py on :8765
+```
+
+`frontend/src` layout:
+
+| Path | Contents |
+|---|---|
+| `App.vue` | header, the two screens, overlays |
+| `components/script/` | 1 · Script: editor, toolbar, settings sidebar, pronunciation list |
+| `components/sync/` | 2 · Sync: video panel, transport, timeline strip, downloads, cue table and draft bar |
+| `components/overlays/` | progress card, help dialog, shortcut list |
+| `components/ui/` | SVG icon sprite and `Icon` |
+| `composables/` | behavior: rendering, playback clock, cues, editor, preview, workflow, shortcuts, persistence |
+| `lib/` | pure helpers and data: script parsing, timing math, formatting, pronunciation, voices, shortcut list, API calls |
+| `state.js` | shared reactive state |
+| `styles/base.css` | theme tokens and shared styles; components keep their own styles scoped |

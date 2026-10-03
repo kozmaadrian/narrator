@@ -4,6 +4,9 @@ models/
 # Rendered narration (WAV, MP3, SRT) and the sentence cache
 output/
 
+# Frontend dependencies (static/ is the committed build)
+frontend/node_modules/
+
 # Python
 __pycache__/
 *.py[cod]
