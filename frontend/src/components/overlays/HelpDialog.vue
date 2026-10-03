@@ -71,6 +71,7 @@ const onClick = (e) => { if (e.target === dialog.value && downOutside) toggleHel
             <li>Pronunciation: select a word, press Add, and spell it the way it should sound.</li>
           </ul>
           <ul v-else class="notes">
+            <li>Hover the timeline strip to see what plays where; click or drag along it to seek. Amber dashes are <code>[pause …]</code> lines, green dashes are silence added by a later Start.</li>
             <li>Click a paragraph card to jump there and tap from it, or pause and press the card's timer button.</li>
             <li>The ⏸ pill between two cards is the pause before the next paragraph. Green means your change resizes it: old → new, then the difference.</li>
             <li>The chain button next to a Start links the paragraph to the ones after it: changing its Start moves them all along, and the cards that will move are tinted while you edit. Click it to unlink, so the paragraph moves on its own and only the pauses around it change.</li>

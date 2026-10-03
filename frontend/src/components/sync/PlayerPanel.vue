@@ -15,9 +15,9 @@ const { tapLabel, tapNext } = useCues();
     <TransportBar />
     <div class="row">
       <div class="legend">
-        <span><i style="background: var(--speech)" />Paragraph</span>
-        <span><i style="background: var(--pause)" />Pause</span>
-        <span><i style="background: var(--wait)" />Changed gap</span>
+        <span><i class="sw speech" />Paragraph</span>
+        <span><i class="sw pause" />Pause</span>
+        <span><i class="sw wait" />Added pause</span>
       </div>
       <span class="spacer" />
       <button title="⌥N. While the video plays, sets the highlighted paragraph's start to now" @click="tapNext()">
@@ -32,5 +32,8 @@ const { tapLabel, tapNext } = useCues();
 .player { overflow: auto; gap: 14px; }
 .legend { display: flex; gap: 14px; font-size: 12px; color: var(--muted); }
 .legend span { display: inline-flex; align-items: center; gap: 6px; }
-.legend i { width: 8px; height: 8px; border-radius: 50%; }
+.sw { display: inline-block; width: 14px; height: 2px; border-radius: 1px; }
+.sw.speech { height: 8px; border-radius: 3px; background: var(--speech); }
+.sw.pause { background: repeating-linear-gradient(90deg, var(--pause) 0 4px, transparent 4px 6px); }
+.sw.wait { height: 3px; background: repeating-linear-gradient(90deg, var(--wait) 0 4px, transparent 4px 6px); }
 </style>
