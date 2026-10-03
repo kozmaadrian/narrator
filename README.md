@@ -35,7 +35,7 @@ Pronunciation fixes (`scripts/pronunciations.txt`, one `word = how to say it` pe
 
 ## Two screens: Script, then Sync
 
-**1 · Script** holds the narration text, with a sidebar for how it should sound: voice, speed, automatic pauses, and pronunciation fixes. Rough out the timing with `[pause …]`, preview a paragraph with <kbd>⇧⌘↵</kbd>, then press **Generate** (<kbd>⌘↵</kbd>). It renders the narration and opens the second screen.
+**1 · Script** holds the narration text, with a sidebar for how it should sound: voice, speed, automatic pauses, and pronunciation fixes. Rough out the timing with `[pause …]`, preview a paragraph with <kbd>⇧⌘↵</kbd>, then press **Generate** (<kbd>⌘↵</kbd>) at the right of the header. It renders the narration and opens the second screen.
 
 While a render runs (Generate, Apply, or a paragraph preview), the app is locked behind a progress card. It shows which sentence is being voiced, a progress bar, the elapsed time, and an estimate of the time left. The estimate is based on how fast your machine voiced the previous sentences. **Cancel** (or <kbd>Esc</kbd>) stops the render before the next sentence. Sentences voiced so far stay cached, so the next Generate picks up quickly. A cancelled Apply leaves the script as it was, and the timing changes stay pending.
 
@@ -55,7 +55,7 @@ Each card (except the last) has a **chain button** before its timer button and S
 
 The link applies to typing, nudging, Start now, clearing, and putting a Start back. It belongs to the paragraph's text, so it survives Apply and reloads. A changed Start is accent-colored. On the card, a **↺ was** chip shows the rendered Start, struck through, and how far it moved (↺ ~~`0:05.9`~~ `+1.1s`); click the chip to put that Start back. The pauses they resize turn green.
 
-Every change is a step in the **Timing history** under the downloads: which paragraph, its Start before → after, how (typed in, nudged, Start now, cleared, put back), and whether the paragraphs after it moved too or stayed. Click a step to go back to it, or a later one to redo up to it; <kbd>⌘Z</kbd> / <kbd>⇧⌘Z</kbd> (<kbd>Ctrl+Z</kbd> / <kbd>Ctrl+Shift+Z</kbd>) do the same one step at a time when you're not typing in a Start. Undone steps stay listed (struck through) until the next change replaces them; the list highlights where you are (no message), and it scrolls on its own so the video and downloads stay in place. Nudges of one paragraph within 2 seconds make one step, and the history keeps the last 60 steps. While changes are pending, **Discard** and **Apply** sit at the right end of the Download row. **Discard** drops the changes and the history. Pending changes and their history survive a page reload as long as the script is unchanged; Apply or a new render starts a fresh history.
+Every change is a step in the **Timing history** under the downloads: which paragraph, its Start before → after, how (typed in, nudged, Start now, cleared, put back), and whether the paragraphs after it moved too or stayed. Click a step to go back to it, or a later one to redo up to it; <kbd>⌘Z</kbd> / <kbd>⇧⌘Z</kbd> (<kbd>Ctrl+Z</kbd> / <kbd>Ctrl+Shift+Z</kbd>) do the same one step at a time when you're not typing in a Start. Undone steps stay listed (struck through) until the next change replaces them; the list highlights where you are (no message), and it scrolls on its own so the video and downloads stay in place. Nudges of one paragraph within 2 seconds make one step, and the history keeps the last 60 steps. While changes are pending, **Apply** takes Generate's place at the right of the header, and **Discard** sits at the right end of the Download row. **Discard** drops the changes and the history. Pending changes and their history survive a page reload as long as the script is unchanged; Apply or a new render starts a fresh history.
 
 **Live preview:** changes play right away, with or without a video, using the current render. If a paragraph now starts later, the audio waits in silence until then (a green block on the timeline strip). If it starts earlier, the audio jumps ahead to it. A paragraph is never cut off: if the previous one is still speaking at its Start, it keeps its usual gap after it instead, and its card says so. The preview uses Web Audio for sample-accurate jumps, which the browser may only start after your first click or key press. At speeds other than 1×, the voice pitch shifts.
 
@@ -88,7 +88,8 @@ npm run dev            # http://localhost:5173 with hot reload; /api is proxied 
 
 | Path | Contents |
 |---|---|
-| `App.vue` | header, the two screens, overlays |
+| `App.vue` | the header, the two screens, and the overlays |
+| `components/AppHeader.vue` | brand, screen tabs, the Generate / Apply action, help |
 | `components/script/` | 1 · Script: editor, toolbar, settings sidebar, pronunciation list |
 | `components/sync/` | 2 · Sync: video panel, transport, timeline strip, downloads, paragraph timing cards (paragraph cards and ⏸ pause connectors) and timing history |
 | `components/overlays/` | progress card, help dialog, shortcut list |

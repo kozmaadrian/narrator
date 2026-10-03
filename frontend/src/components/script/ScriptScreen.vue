@@ -12,10 +12,9 @@ import ScriptEditor from './ScriptEditor.vue';
 </template>
 
 <style scoped>
-.script-screen { display: grid; grid-template-columns: 300px minmax(0, 1fr); }
-.script-screen > .sidebar { border-right: 1px solid var(--border); }
+/* A gutter instead of a dividing line: the editor's toolbar rule stops short of the sidebar. */
+.script-screen { display: grid; grid-template-columns: 300px minmax(0, 1fr); column-gap: 16px; }
 @media (max-width: 1000px) {
   .script-screen { grid-template-columns: 1fr; }
-  .script-screen > .sidebar { border-right: 0; border-top: 1px solid var(--border); }
 }
 </style>

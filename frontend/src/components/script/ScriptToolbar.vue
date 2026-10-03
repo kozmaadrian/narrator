@@ -1,4 +1,4 @@
-<!-- Generate, Preview, Reset, what's out of date, and the pause inserter. -->
+<!-- Preview, Reset, what's out of date, and the pause inserter. (Generate is in the header.) -->
 <script setup>
 import { computed } from 'vue';
 import Icon from '../ui/Icon.vue';
@@ -9,7 +9,7 @@ import { useWorkflow } from '../../composables/useWorkflow';
 
 const { insertPause } = useEditor();
 const { previewAudio, preview } = usePreview();
-const { generate, resetScript } = useWorkflow();
+const { resetScript } = useWorkflow();
 
 const undo = computed(() => beforeReset.value != null);
 const badge = computed(() => {
@@ -20,9 +20,6 @@ const badge = computed(() => {
 
 <template>
   <div class="row toolbar">
-    <button class="primary" title="⌘/Ctrl + Enter. Renders the narration and opens 2 · Sync." @click="generate()">
-      Generate<Icon name="arrow" />
-    </button>
     <button title="⇧⌘/Ctrl + Enter. Plays the selection, or the paragraph at the cursor." @click="preview()">
       <template v-if="previewAudio"><Icon name="stop" />Stop preview</template>
       <template v-else><Icon name="play" />Preview paragraph</template>

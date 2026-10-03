@@ -35,7 +35,7 @@ body.busy { cursor: progress; }
 .i { width: 16px; height: 16px; flex: none; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
 
 /* Layout */
-/* Flat: the screen's columns are split by hairlines, not drawn as cards. */
+/* Flat: the screen's columns sit side by side on one surface, not drawn as cards or split by lines. */
 main { height: calc(100vh - 56px); }
 .screen { height: 100%; max-width: 1480px; margin: 0 auto; }
 .panel { padding: 20px 24px; display: flex; flex-direction: column; gap: 12px; min-height: 0; }

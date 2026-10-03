@@ -1,4 +1,5 @@
-<!-- The last render's downloads, voice intro and warnings; Discard and Apply while timing changes are pending. -->
+<!-- The last render's downloads, voice intro and warnings; Discard while timing changes are pending (Apply is in
+     the header). -->
 <script setup>
 import { computed } from 'vue';
 import Icon from '../ui/Icon.vue';
@@ -7,7 +8,7 @@ import { fileUrl } from '../../lib/api';
 import { useWorkflow } from '../../composables/useWorkflow';
 import { useCues } from '../../composables/useCues';
 
-const { generate, applyDraft } = useWorkflow();
+const { generate } = useWorkflow();
 const { discardDraft } = useCues();
 
 const files = computed(() => {
@@ -16,7 +17,7 @@ const files = computed(() => {
   return (config.value?.mp3 ? ['wav', 'mp3', 'srt'] : ['wav', 'srt']).map((ext) => ({ ext, name: `${l.name}.${ext}`, href: fileUrl(l.name, ext) }));
 });
 // The files hold the rendered timing only: with pending changes (or a changed script) they'd be the old version.
-// Pending changes have Apply on this row, so only a changed script gets a hint here.
+// Pending changes have Apply in the header, so only a changed script gets a hint here.
 const locked = computed(() => (stale.value ? 'stale' : draft.value ? 'draft' : ''));
 const lockedTitle = computed(() => (locked.value === 'stale'
   ? 'The script changed since this render. Generate again to download the new version.'
@@ -48,7 +49,6 @@ const warnings = computed(() => last.value?.warnings || []);
       <span class="spacer" />
       <span class="draft-actions">
         <button class="ghost sm" aria-label="Discard timing changes" title="Forget the pending timing changes and their history" @click="discardDraft()">Discard</button>
-        <button class="primary sm" aria-label="Apply timing changes" title="⌘↵. Write the timing into the script as [pause …] values and render again" @click="applyDraft()">Apply</button>
       </span>
     </template>
   </div>
