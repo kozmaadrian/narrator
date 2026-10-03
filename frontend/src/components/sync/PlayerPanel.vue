@@ -26,6 +26,8 @@ import TimingHistory from './TimingHistory.vue';
 
 <style scoped>
 .player { overflow: auto; gap: 14px; }
+/* Everything keeps its size; the timing history takes what is left and scrolls inside it. */
+.player > :not(.history) { flex: none; }
 .legend { display: flex; gap: 14px; font-size: 12px; color: var(--muted); }
 .legend span { display: inline-flex; align-items: center; gap: 6px; }
 .sw { display: inline-block; width: 14px; height: 8px; }

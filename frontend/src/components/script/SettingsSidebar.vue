@@ -56,7 +56,7 @@ const speedFill = computed(() => `${((settings.speed - SPEED.min) / (SPEED.max -
 
 <style scoped>
 .sidebar { overflow: auto; gap: 0; padding: 0; }
-.group { padding: 18px 20px; display: flex; flex-direction: column; gap: 12px; }
+.group { padding: 20px 24px; display: flex; flex-direction: column; gap: 12px; }
 .group + .group { border-top: 1px solid var(--border); }
 h2 { font-size: 12px; font-weight: 650; letter-spacing: .08em; text-transform: uppercase; color: var(--subtle); }
 .field { display: flex; flex-direction: column; gap: 6px; }

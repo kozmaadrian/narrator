@@ -24,11 +24,11 @@ import CueTable from './CueTable.vue';
 
 <style scoped>
 .cues { padding: 0; gap: 0; overflow: hidden; }
-.panel-head { display: flex; flex-direction: column; gap: 6px; padding: 14px 16px 12px; }
+.panel-head { display: flex; flex-direction: column; gap: 6px; padding: 20px 24px 12px; }
 .panel-head h2 { font-size: 14px; font-weight: 650; }
 .key { display: flex; flex-wrap: wrap; gap: 4px 14px; margin: 0; padding: 0; list-style: none; color: var(--muted); font-size: 12px; }
 .key li { display: inline-flex; align-items: center; gap: 5px; }
 .key .i { width: 13px; height: 13px; color: var(--subtle); }
 .key .pause-key { color: var(--pause-ink); }
-.cues-status.on { margin: 0 12px 12px; }
+.cues-status.on { margin: 0 24px 12px; }
 </style>

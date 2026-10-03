@@ -6,7 +6,7 @@ import { fmt } from '../../lib/format';
 import { IS_MAC } from '../../lib/shortcuts';
 import { useCues } from '../../composables/useCues';
 
-const { history, goToStep, draftSummary } = useCues();
+const { history, stepNote, goToStep, draftSummary } = useCues();
 const h = computed(() => (history.value?.steps.length > 1 ? history.value : null));
 const keys = IS_MAC ? '⌘Z back · ⇧⌘Z forward' : 'Ctrl+Z back · Ctrl+Shift+Z forward';
 const state = (k) => (k < h.value.at ? 'done' : k === h.value.at ? 'current' : 'undone');
@@ -54,24 +54,29 @@ watch(() => h.value && [h.value.at, h.value.steps.length], async () => {
         </component>
       </li>
     </ol>
+    <p class="sr-only" role="status">{{ stepNote }}</p>
   </section>
 </template>
 
 <style scoped>
-.history { flex: none; border: 1px solid var(--border); border-radius: 10px; background: var(--surface); overflow: hidden; }
-.head { display: flex; align-items: baseline; flex-wrap: wrap; gap: 4px 10px; padding: 9px 12px; border-bottom: 1px solid var(--border); background: var(--surface-2); }
-h2 { margin: 0; font-size: 13px; font-weight: 650; }
+/* Takes the room left under the video and scrolls inside it, so the video and downloads stay put. */
+.history { flex: 0 1 auto; display: flex; flex-direction: column; min-height: 0; }
+/* A long list never shrinks below about three steps (a short one simply keeps its height). */
+.history:has(li:nth-child(4)) { min-height: 160px; }
+.head { flex: none; display: flex; align-items: baseline; flex-wrap: wrap; gap: 4px 10px; padding: 0 0 8px; }
+h2 { margin: 0; font-size: 14px; font-weight: 650; }
 .sum, .keys { color: var(--muted); font-size: 12px; }
-.steps { position: relative; max-height: 264px; margin: 0; padding: 4px 0; overflow-y: auto; list-style: none; }
+.steps { position: relative; flex: 0 1 auto; min-height: 0; margin: 0; padding: 4px 0; overflow-y: auto; overscroll-behavior: contain; list-style: none; border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); }
+@media (max-width: 1000px) { .history:has(li:nth-child(4)) { min-height: 0; } .steps { max-height: 300px; } }
 .steps li { position: relative; }
 /* The rail through the step marks: solid up to the current step, dashed after it. */
-.steps li::before { content: ""; position: absolute; left: 22px; top: 0; bottom: 0; width: 2px; background: var(--accent-line); }
+.steps li::before { content: ""; position: absolute; left: 18px; top: 0; bottom: 0; width: 2px; background: var(--accent-line); }
 .steps li:first-child::before { top: 50%; }
 .steps li:last-child::before { bottom: 50%; }
 .steps li.current::before { bottom: 50%; }
 .steps li.current:first-child::before { display: none; }
 .steps li.undone::before { background: linear-gradient(var(--border-strong) 50%, transparent 0) 0 0 / 2px 5px repeat-y; }
-.hstep { display: grid; grid-template-columns: 22px minmax(0, 1fr) auto; align-items: center; gap: 10px; width: 100%; height: auto; min-height: 38px; padding: 6px 12px; border: 0; border-radius: 0; background: none; box-shadow: none; color: var(--text); font-weight: 400; text-align: left; white-space: normal; justify-content: stretch; }
+.hstep { display: grid; grid-template-columns: 22px minmax(0, 1fr) auto; align-items: center; gap: 10px; width: 100%; height: auto; min-height: 38px; padding: 6px 8px; border: 0; border-radius: 0; background: none; box-shadow: none; color: var(--text); font-weight: 400; text-align: left; white-space: normal; justify-content: stretch; }
 button.hstep:hover:not(:disabled) { background: var(--surface-2); }
 button.hstep:focus-visible { outline-offset: -2px; }
 .current .hstep { background: var(--accent-weak); }

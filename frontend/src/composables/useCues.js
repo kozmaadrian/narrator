@@ -16,6 +16,9 @@ watch(() => !!draft.value && (draft.value.length !== paraCount.value || !pending
 watch(paraCount, (n) => { if (tapIndex.value > n) tapIndex.value = n; });
 // The history's steps are Starts for these paragraphs since this render.
 watch([last, paraCount], () => { timingHistory.value = null; }, { flush: 'sync' });
+// What a step back or forward did, for screen readers (the list shows it).
+const stepNote = ref('');
+watch(timingHistory, (h) => { if (!h) stepNote.value = ''; }, { flush: 'sync' });
 
 // Messages about the cards show above them (the Apply bar says what's pending).
 const setStatus = (text, error = false) => say(text, error, false, 'cues');
@@ -152,6 +155,7 @@ function track(i, how, move) {
   }
   if (steps.length > MAX_STEPS + 1) steps.splice(1, steps.length - MAX_STEPS - 1);
   timingHistory.value = { steps, at: steps.length - 1 };
+  stepNote.value = '';
   return r;
 }
 
@@ -262,36 +266,37 @@ const draftSummary = computed(() => (draft.value ? `${changedList.value.join(', 
 const history = computed(() => timingHistory.value
   || (draft.value ? { steps: [ORIGIN, { para: -1, how: 'earlier', what: `${changedList.value.join(', ')} changed`, more: '', draft: draft.value }], at: 1 } : null));
 
-// A step in words, for messages: "step 2 (¶3 0:10.0 → 0:12.0)".
+// A step in words: "step 2, ¶3 from 0:10.0 to 0:12.0".
 function stepName(k) {
   const s = history.value.steps[k];
   if (s.how === 'origin') return 'the rendered timing';
-  if (s.how === 'earlier') return `step ${k} (earlier changes)`;
-  return `step ${k} (¶${s.para + 1} ${fmt(s.from)} → ${fmt(s.to)})`;
+  if (s.how === 'earlier') return `step ${k}, earlier changes`;
+  return `step ${k}, ¶${s.para + 1} from ${fmt(s.from)} to ${fmt(s.to)}`;
 }
 
 // Back (or forward again) to step k: the draft becomes what it was then. The later steps stay listed until
-// the next change.
+// the next change. No message: the list shows where you are (and an older note about a card may no longer hold).
 function goToStep(k) {
   const h = history.value;
   if (!h || k < 0 || k >= h.steps.length || k === h.at) return;
   const name = stepName(k), back = k < h.at;
+  clearStatus();
   timingHistory.value = { steps: h.steps, at: k };
   draft.value = h.steps[k].draft ? [...h.steps[k].draft] : null;
-  const later = h.steps.length - 1 - k;
-  say(`${back ? 'Back to' : 'Redone up to'} ${name}.${later ? ` ${later === 1 ? 'The step after it stays' : `The ${later} steps after it stay`} listed to redo until the next change.` : ''}`,
-    false, false, 'changes');
+  stepNote.value = `${back ? 'Back to' : 'Redone up to'} ${name}.`;
 }
 
 function undoStep() {
   const h = history.value;
-  if (!h || h.at === 0) return say('Nothing to undo: the timing is as rendered.', false, false, 'changes');
+  if (!h) return;
+  if (h.at === 0) { stepNote.value = 'Nothing to undo: the timing is as rendered.'; return; }
   goToStep(h.at - 1);
 }
 
 function redoStep() {
   const h = history.value;
-  if (!h || h.at === h.steps.length - 1) return say('Nothing to redo.', false, false, 'changes');
+  if (!h) return;
+  if (h.at === h.steps.length - 1) { stepNote.value = 'Nothing to redo.'; return; }
   goToStep(h.at + 1);
 }
 
@@ -319,7 +324,7 @@ const activeGap = computed(() => {
 });
 
 const api = {
-  rows, gaps, draftSummary, history, goToStep, undoStep, redoStep, activeSeg, activePara, activeGap, linkHover, linkEdit, movingFrom,
+  rows, gaps, draftSummary, history, stepNote, goToStep, undoStep, redoStep, activeSeg, activePara, activeGap, linkHover, linkEdit, movingFrom,
   blocked, dismissBlocked, setCue, nudgeCue, clearCue, resetCue, discardDraft, tapNext, tapRow, selectRow, toggleFree,
 };
 export const useCues = () => api;

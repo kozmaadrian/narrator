@@ -174,7 +174,7 @@ const onLeave = () => { if (!scrubbing.value) hover.value = null; };
 .seg.wait { background: color-mix(in srgb, var(--wait) 78%, var(--surface-2)); }
 .seg.speech .lbl { color: #fff; }
 .seg.pause .lbl { color: #3d1a02; font-size: 12px; }
-.seg.wait .lbl { color: #022c22; font-size: 12px; }
+.seg.wait .lbl { color: #011510; font-size: 12px; }  /* 4.5:1 on the dark theme's mix too */
 .seg.speech.hot { background: color-mix(in srgb, var(--speech) 95%, var(--surface-2)); }
 .seg.pause.hot { background: color-mix(in srgb, var(--pause) 92%, var(--surface-2)); }
 .seg.wait.hot { background: color-mix(in srgb, var(--wait) 92%, var(--surface-2)); }

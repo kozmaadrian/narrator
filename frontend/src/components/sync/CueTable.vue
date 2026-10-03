@@ -65,11 +65,11 @@ watch([activePara, activeGap], () => { if (clock.playing) follow(); }, { flush: 
 </template>
 
 <style scoped>
-.cards { flex: 1; overflow: auto; min-height: 120px; padding: 0 12px 12px; border-top: 1px solid var(--border); }
+.cards { flex: 1; overflow: auto; min-height: 120px; padding: 0 24px 20px; border-top: 1px solid var(--border); }
 /* Over the Start fields and the spoken lengths: past the card's edge, number and two buttons (see CueRow). */
 .cols {
-  position: sticky; top: 0; z-index: 2; display: flex; justify-content: space-between; margin: 0 -12px;
-  padding: 8px calc(12px + 13px) 6px calc(12px + 1px + 12px + 24px + 2px + 8px + 58px + 8px);
+  position: sticky; top: 0; z-index: 2; display: flex; justify-content: space-between; margin: 0 -24px;
+  padding: 8px calc(24px + 13px) 6px calc(24px + 1px + 12px + 24px + 2px + 8px + 58px + 8px);
   background: var(--surface); color: var(--subtle); font-size: 12px; font-weight: 600;
 }
 .joint { height: 20px; }

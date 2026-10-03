@@ -30,14 +30,15 @@
 [hidden] { display: none !important; }
 /* Read by screen readers, not shown. */
 .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
-body { margin: 0; font: 14px/1.5 var(--ui-font); background: var(--bg); color: var(--text); accent-color: var(--primary); -webkit-font-smoothing: antialiased; }
+body { margin: 0; font: 14px/1.5 var(--ui-font); background: var(--surface); color: var(--text); accent-color: var(--primary); -webkit-font-smoothing: antialiased; }
 body.busy { cursor: progress; }
 .i { width: 16px; height: 16px; flex: none; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
 
 /* Layout */
-main { padding: 20px 24px; height: calc(100vh - 56px); }
+/* Flat: the screen's columns are split by hairlines, not drawn as cards. */
+main { height: calc(100vh - 56px); }
 .screen { height: 100%; max-width: 1480px; margin: 0 auto; }
-.panel { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; box-shadow: var(--shadow); padding: 16px; display: flex; flex-direction: column; gap: 12px; min-height: 0; }
+.panel { padding: 20px 24px; display: flex; flex-direction: column; gap: 12px; min-height: 0; }
 .row { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
 .spacer { flex: 1; }
 h2 { margin: 0; }

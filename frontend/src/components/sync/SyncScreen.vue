@@ -12,14 +12,13 @@ import CuePanel from './CuePanel.vue';
 </template>
 
 <style scoped>
-.sync-screen { display: grid; grid-template-columns: minmax(440px, 1.25fr) minmax(400px, 1fr); gap: 20px; }
-/* The player hugs its content; the timing list takes the full height. */
-.sync-screen > .player { align-self: start; max-height: 100%; }
+.sync-screen { display: grid; grid-template-columns: minmax(440px, 1.25fr) minmax(400px, 1fr); }
+.sync-screen > .cues { border-left: 1px solid var(--border); }
 @media (max-width: 1000px) {
   /* One column: the timing list fills what the player leaves of the window. It keeps its own scroll, so
      following the playhead never moves the video out of view. */
-  .sync-screen { display: flex; flex-direction: column; min-height: calc(100dvh - 56px - 40px); }
-  .sync-screen > .player { flex: none; max-height: none; }
-  .sync-screen > .cues { flex: 1 1 0; min-height: 360px; }
+  .sync-screen { display: flex; flex-direction: column; min-height: calc(100dvh - 56px); }
+  .sync-screen > .player { flex: none; }
+  .sync-screen > .cues { flex: 1 1 0; min-height: 360px; border-left: 0; border-top: 1px solid var(--border); }
 }
 </style>

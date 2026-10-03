@@ -12,8 +12,10 @@ import ScriptEditor from './ScriptEditor.vue';
 </template>
 
 <style scoped>
-.script-screen { display: grid; grid-template-columns: 300px minmax(0, 1fr); gap: 20px; }
+.script-screen { display: grid; grid-template-columns: 300px minmax(0, 1fr); }
+.script-screen > .sidebar { border-right: 1px solid var(--border); }
 @media (max-width: 1000px) {
   .script-screen { grid-template-columns: 1fr; }
+  .script-screen > .sidebar { border-right: 0; border-top: 1px solid var(--border); }
 }
 </style>
