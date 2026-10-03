@@ -16,6 +16,7 @@ export const SHORTCUTS = {
     ['Play / pause', ['alt space']],
     ['Tap: highlighted paragraph starts now', ['alt N']],
     ['Seek back / forward 2 s', ['alt J', 'alt L']],
+    ['Subtitles on the video on / off', ['alt C']],
     ['Nudge a Start by 0.1 s', ['↑', '↓']],
     ['Nudge a Start by 1 s', ['shift ↑', 'shift ↓']],
     ['Apply the timing to the script', ['mod enter']],

@@ -8,6 +8,7 @@ import { usePreview } from './usePreview';
 import { useCues } from './useCues';
 import { useWorkflow } from './useWorkflow';
 import { useHelp } from './useHelp';
+import { useSubtitles } from './useSubtitles';
 
 const { cancelRender } = useRender();
 const { togglePlay, seekTo, currentTime } = usePlayback();
@@ -16,6 +17,7 @@ const { preview } = usePreview();
 const { tapNext } = useCues();
 const { generate, applyDraft } = useWorkflow();
 const { helpOpen, toggleHelp } = useHelp();
+const { toggleSubtitles } = useSubtitles();
 
 function onKeydown(e) {
   const mod = e.metaKey || e.ctrlKey;
@@ -41,7 +43,7 @@ function onKeydown(e) {
   }
   if (!e.altKey || mod) return;
   const actions = sync ? {
-    Space: togglePlay, KeyN: tapNext,
+    Space: togglePlay, KeyN: tapNext, KeyC: toggleSubtitles,
     KeyJ: () => seekTo(currentTime() - 2), KeyL: () => seekTo(currentTime() + 2),
   } : { KeyP: insertPause };
   if (actions[e.code]) { e.preventDefault(); actions[e.code](); }

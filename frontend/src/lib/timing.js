@@ -135,13 +135,23 @@ function paragraphEntries(last) {
   return out;
 }
 
-// Rendered timeline entries placed on the narration clock (moved with their audio), plus waits for moved paragraphs.
+// A rendered entry on the narration clock, moved with its audio; null when that audio doesn't play.
+function place(e, sched) {
+  const seg = sched.segs.find((s) => e.start >= s.t0 + s.off - 0.005 && e.end <= s.t1 + s.off + 0.005);
+  return seg ? { ...e, start: e.start - seg.off, end: e.end - seg.off } : null;
+}
+
+// Rendered timeline entries placed on the narration clock, plus waits for moved paragraphs.
 export function placedEntries(last, sched) {
   if (!last || !sched) return [];
-  const out = [];
-  for (const e of paragraphEntries(last)) {
-    const seg = sched.segs.find((s) => e.start >= s.t0 + s.off - 0.005 && e.end <= s.t1 + s.off + 0.005);
-    if (seg) out.push({ ...e, start: e.start - seg.off, end: e.end - seg.off });
-  }
-  return out.concat(sched.waits).sort((a, b) => a.start - b.start);
+  return paragraphEntries(last).map((e) => place(e, sched)).filter(Boolean)
+    .concat(sched.waits).sort((a, b) => a.start - b.start);
+}
+
+// The rendered sentences on the narration clock, as the subtitles show them: [{ start, end, text }].
+export function placedSentences(last, sched) {
+  if (!last || !sched) return [];
+  return last.timeline.filter((e) => e.kind === 'speech' && e.text?.trim())
+    .map((e) => place({ start: e.start, end: e.end, text: e.text.replace(/\s+/g, ' ').trim() }, sched))
+    .filter(Boolean).sort((a, b) => a.start - b.start);
 }

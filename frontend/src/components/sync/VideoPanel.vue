@@ -1,17 +1,22 @@
-<!-- The screen recording: a drop zone until one is chosen, then the (muted) video. -->
+<!-- The screen recording: a drop zone until one is chosen, then the (muted) video, with optional subtitles. -->
 <script setup>
 import { onMounted, ref, watch } from 'vue';
 import Icon from '../ui/Icon.vue';
 import { videoLoaded } from '../../state';
 import { usePlayback } from '../../composables/usePlayback';
+import { useSubtitles } from '../../composables/useSubtitles';
 
 const { bindVideo, loadVideo, removeVideo, setVideoSound } = usePlayback();
+const { subtitlesOn, bindSubtitles } = useSubtitles();
 const video = ref(null);
 const fileInput = ref(null);
 const over = ref(false);
 const withSound = ref(false);
 
-onMounted(() => bindVideo(video.value));
+onMounted(() => {
+  bindVideo(video.value);
+  bindSubtitles(video.value);
+});
 watch(withSound, (on) => setVideoSound(on));
 
 function onDrop(e) {
@@ -47,6 +52,7 @@ function onPick(e) {
     <video ref="video" controls muted playsinline />
     <div class="row">
       <label class="switch"><input v-model="withSound" type="checkbox">Original video sound</label>
+      <label class="switch" title="⌥C. Show the sentence being spoken at the bottom of the video, also in fullscreen"><input v-model="subtitlesOn" type="checkbox">Subtitles</label>
       <span class="spacer" />
       <button class="ghost sm" @click="removeVideo()"><Icon name="x" />Remove video</button>
     </div>
@@ -65,4 +71,5 @@ function onPick(e) {
 .drop-btn { margin: 12px 0 10px; height: 32px; padding: 0 14px; border-radius: 8px; display: inline-flex; align-items: center; gap: 6px; background: #f1f2f6; color: #111827; font-size: 13px; font-weight: 600; }
 .video-wrap { display: flex; flex-direction: column; gap: 10px; }
 video { display: block; width: 100%; max-height: 58vh; background: #000; border-radius: 10px; }
+video::cue { background: rgba(10, 12, 18, .8); color: #fff; font-family: -apple-system, BlinkMacSystemFont, Inter, "Segoe UI", Roboto, sans-serif; line-height: 1.35; }
 </style>
