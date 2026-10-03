@@ -1,5 +1,5 @@
-<!-- The recording, the transport with the timeline strip, the last render's files (with Discard / Apply for
-     pending timing changes) and warnings, then the timing history and what became of the changes. -->
+<!-- The recording, the transport with the timeline strip, the last render's files and warnings, then the timing
+     history and what became of the changes (Discard / Apply are in the header). -->
 <script setup>
 import VideoPanel from './VideoPanel.vue';
 import TransportBar from './TransportBar.vue';

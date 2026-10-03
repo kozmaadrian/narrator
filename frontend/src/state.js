@@ -27,8 +27,8 @@ export const beforeReset = ref(null);      // the script before Reset, while Und
 export const settings = reactive({ voice: '', speed: 1, sentence_pause: 0.35, paragraph_pause: 0.8 });
 export const pronRules = ref([]);          // Pronunciation list: [{ id, word, say }]
 
-// The last message for the user, shown where it belongs: 'script', 'sync' (the player) or 'cues' (the paragraph
-// timing on 2 · Sync). By default, the screen open when it was set.
+// The last message for the user, shown where it belongs: 'script', 'sync' (under the player's timeline) or
+// 'changes' (under the timing history, about Apply / Discard). By default, the screen open when it was set.
 export const status = reactive({ text: '', error: false, spinning: false, screen: 'script' });
 export function setStatus(text, error = false, spinning = false, where = screen.value) {
   Object.assign(status, { text, error, spinning, screen: where });

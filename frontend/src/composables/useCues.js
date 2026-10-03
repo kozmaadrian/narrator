@@ -1,5 +1,5 @@
 // The paragraph cards: pending Starts (the draft), Start now (⌥N), and what each card shows.
-import { computed, ref, watch } from 'vue';
+import { computed, nextTick, ref, watch } from 'vue';
 import { clearStatus, draft, freeParas, last, paraCount, paras, setStatus as say, tapIndex, timingHistory } from '../state';
 import { fmt } from '../lib/format';
 import { paragraphGaps, schedule } from '../lib/timing';
@@ -20,8 +20,15 @@ watch([last, paraCount], () => { timingHistory.value = null; }, { flush: 'sync' 
 const stepNote = ref('');
 watch(timingHistory, (h) => { if (!h) stepNote.value = ''; }, { flush: 'sync' });
 
-// Messages about the cards show above them (the Apply bar says what's pending).
-const setStatus = (text, error = false) => say(text, error, false, 'cues');
+// What a card change did, for screen readers only: the cards, the pause pills and the history show it.
+// Cleared first, so the same note twice is announced twice.
+const cardNote = ref('');
+function note(text) {
+  cardNote.value = '';
+  nextTick(() => { cardNote.value = text; });
+}
+// When Start now can't do anything, it says why under the timeline, where you play the recording.
+const hint = (text, error = false) => say(text, error, false, 'sync');
 
 // The draft to edit: the pending one, or else every paragraph pinned at its rendered Start, so the move
 // changed paragraph's link alone decides what happens to the ones after it. Returned as a copy; assign it back.
@@ -46,7 +53,7 @@ function toggleFree(i) {
   const f = new Set(freeParas.value), free = !f.has(p.snippet);
   if (free) f.add(p.snippet); else f.delete(p.snippet);
   freeParas.value = f;
-  setStatus(free ? `¶${i + 1} moves on its own now: a Start change leaves ${followers(i)} where they are.`
+  note(free ? `¶${i + 1} moves on its own now: a Start change leaves ${followers(i)} where they are.`
     : `¶${i + 1} is linked: a Start change moves ${followers(i)} along with it.`);
 }
 
@@ -111,14 +118,14 @@ function followersNote(i, r) {
 }
 
 // An unlinked paragraph asked to start later than the one after it leaves room for. The note between the two
-// cards says so (an alert), so the message above the cards goes.
+// cards says so (an alert).
 function blockedStatus(i, r) {
   const where = `¶${r.blocker + 1} stays at ${fmt(r.blockerAt)}`, moved = r.delta > 0.05;
   blocked.value = {
     para: i, at: r.blocker, id: ++blockedId,
     text: `${moved ? `¶${i + 1} can't go past ${fmt(r.value)}` : `¶${i + 1} can't start later`}: ${where}.`,
   };
-  clearStatus();
+  cardNote.value = '';
 }
 
 // Each change to the draft is a step in the history. how: 'typed', 'now' (Start now), 'nudge', 'clear',
@@ -167,7 +174,7 @@ function setCue(i, t, advance = true, how = 'typed') {
   if (advance) tapIndex.value = i + 1;
   if (r.blocker >= 0) return blockedStatus(i, r);
   const what = i === 0 && t < 0 ? `voice starts ${(-t).toFixed(1)}s before the video` : `starts at ${fmt(t)}`;
-  setStatus(`¶${i + 1} ${what}${followersNote(i, r)}.`);
+  note(`¶${i + 1} ${what}${followersNote(i, r)}.`);
 }
 
 function nudgeCue(i, delta, fallback = null) {
@@ -178,7 +185,7 @@ function nudgeCue(i, delta, fallback = null) {
 function clearCue(i) {
   if (i >= paraCount.value) return;
   const r = track(i, 'clear', () => applyMove(i, null));
-  setStatus(`¶${i + 1} follows the paragraph before it, as rendered${followersNote(i, r)}.`);
+  note(`¶${i + 1} follows the paragraph before it, as rendered${followersNote(i, r)}.`);
 }
 
 function resetCue(i) {
@@ -186,7 +193,7 @@ function resetCue(i) {
   if (i >= paraCount.value || t == null) return;
   const r = track(i, 'reset', () => applyMove(i, t));
   if (r.blocker >= 0) return blockedStatus(i, r);
-  setStatus(`¶${i + 1} back to ${fmt(t)}, as rendered${followersNote(i, r)}.`);
+  note(`¶${i + 1} back to ${fmt(t)}, as rendered${followersNote(i, r)}.`);
 }
 
 function discardDraft() {
@@ -198,13 +205,13 @@ function discardDraft() {
 
 function canTap() {
   if (hasMedia()) return true;
-  setStatus('Generate the narration first, then play it and press Start now (⌥N) when a paragraph should begin.', true);
+  hint('Generate the narration first, then play it and press Start now (⌥N) when a paragraph should begin.', true);
   return false;
 }
 
 function tapNext() {
   if (!canTap()) return;
-  if (tapIndex.value >= paraCount.value) return setStatus('That was the last paragraph. Go to a paragraph (its number) to set Starts from there again.');
+  if (tapIndex.value >= paraCount.value) return hint('That was the last paragraph. Go to a paragraph (its number) to set Starts from there again.');
   setCue(tapIndex.value, videoTime(), true, 'now');
 }
 
@@ -324,7 +331,7 @@ const activeGap = computed(() => {
 });
 
 const api = {
-  rows, gaps, draftSummary, history, stepNote, goToStep, undoStep, redoStep, activeSeg, activePara, activeGap, linkHover, linkEdit, movingFrom,
+  rows, gaps, draftSummary, history, stepNote, cardNote, goToStep, undoStep, redoStep, activeSeg, activePara, activeGap, linkHover, linkEdit, movingFrom,
   blocked, dismissBlocked, setCue, nudgeCue, clearCue, resetCue, discardDraft, tapNext, tapRow, selectRow, toggleFree,
 };
 export const useCues = () => api;

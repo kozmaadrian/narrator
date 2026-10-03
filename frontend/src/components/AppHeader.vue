@@ -1,4 +1,4 @@
-<!-- Brand, the two screen tabs, the screen's main action and the help button. (Messages show on each screen:
+<!-- Brand, the two screen tabs, the screen's actions and the help button. (Messages show on each screen:
      see StatusBar.) -->
 <script setup>
 import { computed } from 'vue';
@@ -7,9 +7,11 @@ import { draft, screen, stale } from '../state';
 import { IS_MAC } from '../lib/shortcuts';
 import { useWorkflow } from '../composables/useWorkflow';
 import { useHelp } from '../composables/useHelp';
+import { useCues } from '../composables/useCues';
 
 const { show, generate, applyDraft } = useWorkflow();
 const { toggleHelp } = useHelp();
+const { discardDraft } = useCues();
 
 // Generate on 1 · Script; Apply on 2 · Sync while timing changes are pending (Generate there if the script
 // changed since the render, since Apply needs a current render). Same as ⌘↵ on each screen.
@@ -17,6 +19,8 @@ const action = computed(() => {
   if (screen.value === 'script' || stale.value) return 'generate';
   return draft.value ? 'apply' : '';
 });
+// Discard next to it on 2 · Sync while timing changes are pending.
+const discard = computed(() => screen.value === 'sync' && !!draft.value);
 const enter = IS_MAC ? '⌘↵' : 'Ctrl+Enter';
 const generateTitle = computed(() => (screen.value === 'script'
   ? `${enter}. Renders the narration and opens 2 · Sync.`
@@ -49,6 +53,12 @@ const generateTitle = computed(() => (screen.value === 'script'
       </button>
     </nav>
     <div class="header-end">
+      <button
+        v-if="discard" class="discard" aria-label="Discard timing changes"
+        title="Forget the pending timing changes and their history" @click="discardDraft()"
+      >
+        <Icon name="x" /><span class="label">Discard</span>
+      </button>
       <button v-if="action === 'generate'" class="primary action" :title="generateTitle" @click="generate()">
         Generate<Icon name="arrow" />
       </button>
@@ -84,6 +94,7 @@ header { height: 56px; display: grid; grid-template-columns: 1fr auto 1fr; align
 .tabs .sync.dirty::after { content: ""; position: absolute; top: 5px; right: 5px; width: 6px; height: 6px; border-radius: 50%; background: var(--pause); box-shadow: 0 0 0 2px var(--surface-3); }
 .tabs .sync.dirty.active::after { box-shadow: 0 0 0 2px var(--surface); }
 .header-end { justify-self: end; display: flex; align-items: center; gap: 10px; }
+.discard .i { width: 14px; height: 14px; }
 .help-btn { flex: none; width: 32px; height: 32px; padding: 0; border-radius: 50%; }
 .help-btn .i { width: 18px; height: 18px; }
 /* Narrow: the name and then the logo give way so the tabs and the action keep their room.
@@ -100,5 +111,12 @@ header { height: 56px; display: grid; grid-template-columns: 1fr auto 1fr; align
   .tabs { justify-self: start; }
   .tabs button { padding: 0 10px 0 6px; }
   .action .i { display: none; }
+  .discard { width: 34px; padding: 0; justify-content: center; }
+  .discard .label { display: none; }
+}
+@media (max-width: 360px) {
+  header { gap: 6px; padding: 0 8px; }
+  .header-end { gap: 6px; }
+  .tabs button { padding: 0 8px 0 4px; }
 }
 </style>

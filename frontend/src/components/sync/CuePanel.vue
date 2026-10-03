@@ -1,9 +1,11 @@
-<!-- Paragraph timing: what the card buttons do, messages about the cards, and the cards themselves.
-     Pending changes (Discard / Apply) sit under the player's downloads. -->
+<!-- Paragraph timing: what the card buttons do and the cards themselves. No message bar: the cards show what a
+     change did (screen readers hear it). Discard / Apply for pending changes are in the header. -->
 <script setup>
 import Icon from '../ui/Icon.vue';
-import StatusBar from '../ui/StatusBar.vue';
 import CueTable from './CueTable.vue';
+import { useCues } from '../../composables/useCues';
+
+const { cardNote } = useCues();
 </script>
 
 <template>
@@ -17,7 +19,7 @@ import CueTable from './CueTable.vue';
         <li><Icon name="reset" />Put back</li>
       </ul>
     </div>
-    <StatusBar where="cues" class="cues-status" />
+    <p class="sr-only" role="status">{{ cardNote }}</p>
     <CueTable />
   </section>
 </template>
@@ -30,5 +32,4 @@ import CueTable from './CueTable.vue';
 .key li { display: inline-flex; align-items: center; gap: 5px; }
 .key .i { width: 13px; height: 13px; color: var(--subtle); }
 .key .pause-key { color: var(--pause-ink); }
-.cues-status.on { margin: 0 24px 12px; }
 </style>
