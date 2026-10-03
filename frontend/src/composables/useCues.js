@@ -1,8 +1,8 @@
 // The paragraph table: pending Starts (the draft), taps, and what each row shows.
 import { computed, watch } from 'vue';
-import { draft, last, paraCount, paras, setStatus, tapIndex } from '../state';
+import { draft, last, moveMode, paraCount, paras, setStatus, tapIndex } from '../state';
 import { fmt } from '../lib/format';
-import { paragraphGaps } from '../lib/timing';
+import { paragraphGaps, schedule } from '../lib/timing';
 import { useTimeline } from './useTimeline';
 import { usePlayback } from './usePlayback';
 
@@ -17,8 +17,8 @@ watch(paraCount, (n) => { if (tapIndex.value > n) tapIndex.value = n; });
 
 const draftHint = () => (last.value ? 'It plays live now; Apply writes it into the script.' : 'Apply writes it into the script.');
 
-// The draft to edit: the pending one, or else every paragraph pinned at its rendered Start, so moving one
-// paragraph doesn't drag the ones after it along. Returned as a copy; assign it back to draft.
+// The draft to edit: the pending one, or else every paragraph pinned at its rendered Start, so the move
+// mode alone decides what happens to the ones after a changed paragraph. Returned as a copy; assign it back.
 function draftCopy() {
   const n = paraCount.value, d = draft.value, ref = refStarts.value;
   if (d && d.length === n) return [...d];
@@ -27,16 +27,68 @@ function draftCopy() {
 
 const shownStart = (i) => (draft.value ? draft.value[i] : refStarts.value[i]) ?? null;
 
+const signed = (t) => `${t > 0 ? '+' : '−'}${Math.abs(t).toFixed(1)}s`;
+
+// Puts ¶i's Start at value (null: the rendered gap after the paragraph before) and takes the paragraphs
+// after it along or keeps them in place, per moveMode. Positions are where the paragraphs play now, so a
+// paragraph pushed along by an overlap gets that position as its Start. Returns what happened:
+// { value, delta: how far ¶i moved, blocker: in 'stay' mode, the paragraph that capped a later Start }.
+function applyMove(i, value) {
+  const n = paraCount.value, before = info.value, d = draftCopy(), old = before[i]?.start;
+  if (!last.value || before.length !== n || old == null) {
+    d[i] = value;
+    draft.value = d;
+    return { value, delta: 0, blocker: -1 };
+  }
+  const startsWith = (x) => { const c = [...d]; c[i] = x; return schedule(last.value, n, c).info; };
+  const pinned = [];
+  for (let j = i + 1; j < n; j++) if (d[j] != null && before[j]?.start != null) pinned.push(j);
+  let blocker = -1;
+  if (moveMode.value === 'stay') {
+    pinned.forEach((j) => { d[j] = before[j].start; });
+    // A later Start can't push the paragraphs after it: take the latest one on the 0.1 s grid that fits.
+    const blocks = (x) => { const s = startsWith(x); return pinned.find((j) => s[j].start > before[j].start + 0.001) ?? -1; };
+    if (value != null && value > old + 0.001 && (blocker = blocks(value)) >= 0) {
+      let lo = Math.ceil(old * 10 - 1e-6), hi = Math.round(value * 10) - 1, best = null;
+      while (lo <= hi) {
+        const m = (lo + hi) >> 1;
+        if (blocks(m / 10) < 0) { best = m; lo = m + 1; } else hi = m - 1;
+      }
+      value = best != null ? best / 10 : old;
+    }
+    d[i] = value;
+  } else {
+    d[i] = value;
+    const delta = startsWith(value)[i].start - old;
+    if (Math.abs(delta) > 0.0005) pinned.forEach((j) => { d[j] = Math.round((before[j].start + delta) * 1000) / 1000; });
+  }
+  draft.value = d;
+  const now = info.value[i]?.start;
+  return { value, delta: now != null ? now - old : 0, blocker, blockerAt: blocker >= 0 ? before[blocker].start : null };
+}
+
+// How the paragraphs after ¶i took the move, for the status line ('' when there are none).
+function followersNote(i, r) {
+  if (i >= paraCount.value - 1 || Math.abs(r.delta) < 0.05) return '';
+  return moveMode.value === 'stay' ? '; the paragraphs after it stay in place' : `; the paragraphs after it move along (${signed(r.delta)})`;
+}
+
+// In 'stay' mode, a Start the paragraph after it doesn't leave room for.
+function blockedStatus(i, r) {
+  const where = `¶${r.blocker + 1} stays at ${fmt(r.blockerAt)}`;
+  const head = r.delta > 0.05 ? `¶${i + 1} can start at ${fmt(r.value)} at the latest: ${where}.` : `¶${i + 1} can't start later: ${where}.`;
+  setStatus(`${head} To go further, choose “Move along” for later paragraphs.`, true);
+}
+
 function setCue(i, t, advance = true) {
   if (i >= paraCount.value || t == null || Number.isNaN(t)) return;
   if (i > 0) t = Math.max(0, t);
   t = Math.round(t * 10) / 10;
-  const d = draftCopy();
-  d[i] = t;
-  draft.value = d;
+  const r = applyMove(i, t);
   if (advance) tapIndex.value = i + 1;
+  if (r.blocker >= 0) return blockedStatus(i, r);
   const what = i === 0 && t < 0 ? `voice starts ${(-t).toFixed(1)}s before the video` : `starts at ${fmt(t)}`;
-  setStatus(`¶${i + 1} ${what}. ${draftHint()}`);
+  setStatus(`¶${i + 1} ${what}${followersNote(i, r)}. ${draftHint()}`);
 }
 
 function nudgeCue(i, delta, fallback = null) {
@@ -46,19 +98,16 @@ function nudgeCue(i, delta, fallback = null) {
 // Empty Start: the paragraph keeps its rendered gap after the paragraph before it.
 function clearCue(i) {
   if (i >= paraCount.value) return;
-  const d = draftCopy();
-  d[i] = null;
-  draft.value = d;
-  setStatus(`¶${i + 1} follows the paragraph before it, as rendered. ${draftHint()}`);
+  const r = applyMove(i, null);
+  setStatus(`¶${i + 1} follows the paragraph before it, as rendered${followersNote(i, r)}. ${draftHint()}`);
 }
 
 function resetCue(i) {
   const t = refStarts.value[i];
   if (i >= paraCount.value || t == null) return;
-  const d = draftCopy();
-  d[i] = t;
-  draft.value = d;
-  setStatus(`¶${i + 1} back to ${fmt(t)}, as rendered.${draft.value ? ` ${draftHint()}` : ''}`);
+  const r = applyMove(i, t);
+  if (r.blocker >= 0) return blockedStatus(i, r);
+  setStatus(`¶${i + 1} back to ${fmt(t)}, as rendered${followersNote(i, r)}.${draft.value ? ` ${draftHint()}` : ''}`);
 }
 
 function discardDraft() {
@@ -120,9 +169,19 @@ const gaps = computed(() => paragraphGaps(last.value, base.value?.info || [], in
   return { ...g, changed: Math.abs(g.now - g.rendered) >= 0.005 };
 }));
 
-const changedList = computed(() => pending.value.flatMap((x, i) => (x ? [`¶${i + 1}`] : [])));
+// "¶2, ¶5–¶9": the changed paragraphs, consecutive ones as a range.
+const changedList = computed(() => {
+  const runs = [];
+  pending.value.forEach((x, i) => {
+    if (!x) return;
+    const r = runs[runs.length - 1];
+    if (r && r[1] === i - 1) r[1] = i; else runs.push([i, i]);
+  });
+  return runs.map(([a, b]) => (a === b ? `¶${a + 1}` : `¶${a + 1}${b > a + 1 ? '–' : ', '}¶${b + 1}`));
+});
+const changedCount = computed(() => pending.value.filter(Boolean).length);
 const draftSummary = computed(() => (draft.value
-  ? `${changedList.value.join(', ')} changed. Apply writes ${changedList.value.length > 1 ? 'them' : 'it'} into the script as [pause …] values.` : ''));
+  ? `${changedList.value.join(', ')} changed. Apply writes ${changedCount.value > 1 ? 'them' : 'it'} into the script as [pause …] values.` : ''));
 const tapLabel = computed(() => (tapIndex.value < paraCount.value ? `Tap ¶${tapIndex.value + 1}` : 'All set'));
 
 // What plays now: the strip segment and the paragraph under the playhead.

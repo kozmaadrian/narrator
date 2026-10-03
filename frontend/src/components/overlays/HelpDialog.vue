@@ -73,6 +73,7 @@ const onClick = (e) => { if (e.target === dialog.value && downOutside) toggleHel
           <ul v-else class="notes">
             <li>Click a row to jump there and tap from it, or pause and press the row's timer button.</li>
             <li>The ⏸ row between two paragraphs is the pause before the next one. Green means your change resizes it: the new length, the difference, and what it was.</li>
+            <li><b>Later paragraphs</b>, above the table, decides what a Start change does to the paragraphs after it. <i>Move along</i> shifts them all by the same amount. <i>Stay in place</i> keeps them where they are, so only the pauses around the changed paragraph change.</li>
             <li>An empty Start keeps the rendered gap after the paragraph before. The reset button puts back the rendered Start.</li>
             <li>A negative Start on ¶1 starts the voice before the video.</li>
             <li>Changes play live, with or without a video. A paragraph is never cut off: if the one before is still speaking, it waits for it.</li>

@@ -14,6 +14,9 @@ export const tapIndex = ref(0);            // paragraph that receives the next t
 export const videoLoaded = ref(false);
 export const videoDuration = ref(NaN);
 export const pauseLen = ref(1);            // seconds for the toolbar's Pause button
+// When a paragraph's Start changes: 'move' shifts the paragraphs after it by the same amount (their
+// pauses stay); 'stay' keeps them where they are (only the pauses around it change).
+export const moveMode = ref(localStorage.getItem('narrator.moveMode') === 'stay' ? 'stay' : 'move');
 export const beforeReset = ref(null);      // the script before Reset, while Undo reset is offered
 export const settings = reactive({ voice: '', speed: 1, sentence_pause: 0.35, paragraph_pause: 0.8 });
 export const pronRules = ref([]);          // Pronunciation list: [{ id, word, say }]
