@@ -2,10 +2,11 @@
 import { computed, watch } from 'vue';
 import { draft, last, paraCount, paras, setStatus, tapIndex, videoLoaded } from '../state';
 import { fmt } from '../lib/format';
+import { paragraphGaps } from '../lib/timing';
 import { useTimeline } from './useTimeline';
 import { usePlayback } from './usePlayback';
 
-const { refStarts, info, pending, playingInfo, rowStarts, lead, narrationEnd, stripEntries } = useTimeline();
+const { base, refStarts, info, pending, playingInfo, rowStarts, lead, narrationEnd, stripEntries } = useTimeline();
 const { clock, clockEl, videoTime, seekTo } = usePlayback();
 
 // A draft only lives while it lines up with the paragraphs and still differs from the rendered timing:
@@ -112,6 +113,13 @@ const rows = computed(() => {
   });
 });
 
+// The pause before each paragraph, as rendered and as it plays with the pending Starts. Shown between the
+// rows, and before ¶1 only when its voice waits.
+const gaps = computed(() => paragraphGaps(last.value, base.value?.info || [], info.value).map((g) => {
+  if (!g || (g.first && g.rendered < 0.005 && g.now < 0.005)) return null;
+  return { ...g, changed: Math.abs(g.now - g.rendered) >= 0.005 };
+}));
+
 const changedList = computed(() => pending.value.flatMap((x, i) => (x ? [`¶${i + 1}`] : [])));
 const draftSummary = computed(() => (draft.value
   ? `${changedList.value.join(', ')} changed. Apply writes ${changedList.value.length > 1 ? 'them' : 'it'} into the script as [pause …] values.` : ''));
@@ -126,8 +134,22 @@ const activePara = computed(() => {
   return para;
 });
 
+// The paragraph whose leading silence is playing now.
+const activeGap = computed(() => {
+  if (!last.value || clock.t >= narrationEnd.value) return -1;
+  const inf = playingInfo.value, L = lead.value;
+  let from = 0;
+  for (let i = 0; i < inf.length; i++) {
+    const x = inf[i];
+    if (x?.start == null) continue;
+    if (clock.t >= from - 0.001 && clock.t < x.start + L - 0.001) return i;
+    from = x.end + L;
+  }
+  return -1;
+});
+
 const api = {
-  rows, draftSummary, tapLabel, activeSeg, activePara,
+  rows, gaps, draftSummary, tapLabel, activeSeg, activePara, activeGap,
   setCue, nudgeCue, clearCue, resetCue, discardDraft, tapNext, tapRow, selectRow,
 };
 export const useCues = () => api;

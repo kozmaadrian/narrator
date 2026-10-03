@@ -1,18 +1,20 @@
-<!-- One row per paragraph; the row under the playhead scrolls into view while it plays. -->
+<!-- One row per paragraph, with the pause before it in a slim row between; the row under the playhead scrolls
+     into view while it plays. -->
 <script setup>
-import { nextTick, ref, watch } from 'vue';
+import { nextTick, watch } from 'vue';
+import CueGap from './CueGap.vue';
 import CueRow from './CueRow.vue';
 import { useCues } from '../../composables/useCues';
 import { usePlayback } from '../../composables/usePlayback';
 
-const { rows, activePara } = useCues();
+const { rows, gaps, activePara, activeGap } = useCues();
 const { clockEl } = usePlayback();
-const rowEls = ref([]);
+const rowEls = [];
 
 watch(activePara, async (i) => {
   if (i < 0 || clockEl().paused) return;
   await nextTick();
-  rowEls.value[i]?.$el?.scrollIntoView({ block: 'nearest' });
+  rowEls[i]?.$el?.scrollIntoView({ block: 'nearest' });
 });
 </script>
 
@@ -28,7 +30,10 @@ watch(activePara, async (i) => {
         </tr>
       </thead>
       <tbody>
-        <CueRow v-for="(row, i) in rows" :key="i" ref="rowEls" :row="row" :index="i" />
+        <template v-for="(row, i) in rows" :key="i">
+          <CueGap v-if="gaps[i]" :gap="gaps[i]" :index="i" :active="i === activeGap" />
+          <CueRow :ref="(el) => { rowEls[i] = el; }" :row="row" :index="i" />
+        </template>
         <tr v-if="!rows.length"><td colspan="4" class="empty">No paragraphs yet.</td></tr>
       </tbody>
     </table>

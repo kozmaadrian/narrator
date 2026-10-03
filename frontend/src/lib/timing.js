@@ -91,6 +91,29 @@ export function pauseScript(text, last, starts, L) {
   return out + v.slice(pos);
 }
 
+// Per paragraph: the silence before its speech, after the previous paragraph's (for the first one, from the
+// video start). ref and now are schedule infos: as rendered, and with the pending Starts. Each entry is
+// { rendered, now, from, first }, or null where unknown; from lists the [pause …] directives the rendered
+// silence came from, [] meaning the automatic paragraph pause.
+export function paragraphGaps(last, ref, now) {
+  const blocks = speechBlocks(last);
+  if (!last || blocks.length !== ref.length || blocks.length !== now.length) return [];
+  let prev = null, prevE = 0;
+  return blocks.map((b, i) => {
+    const r = ref[i], n = now[i];
+    if (b.S == null || r?.start == null || n?.start == null) return null;
+    const from = last.timeline
+      .filter((e) => e.kind === 'pause' && !e.auto && e.start >= prevE - 0.005 && e.end <= b.S + 0.005)
+      .map((e) => e.text);
+    const gap = prev
+      ? { rendered: r.start - prev.r, now: n.start - prev.n, from, first: false }
+      : { rendered: Math.max(0, r.start), now: Math.max(0, n.start), from, first: true };
+    prev = { r: r.end, n: n.end };
+    prevE = b.E;
+    return gap;
+  });
+}
+
 // Every paragraph's Start (video time): its pending value, or else where it plays now.
 export const fixedStarts = (cues, info) => cues.map((c, i) => c ?? info[i]?.start ?? null);
 

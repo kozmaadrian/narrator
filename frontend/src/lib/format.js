@@ -15,6 +15,12 @@ export const secs = (t) => {
   return t < 60 ? `${t}s` : `${Math.floor(t / 60)}m ${String(t % 60).padStart(2, '0')}s`;
 };
 
+// A pause length to the hundredth, at least one decimal: "0.8s", "0.35s", "2.0s".
+export const gapLen = (t) => {
+  const c = Math.round(Math.max(0, t) * 100);
+  return `${(c / 100).toFixed(c % 10 ? 2 : 1)}s`;
+};
+
 // "1:05.5", "65.5", "-2" → seconds; null when it can't be read.
 export function parseTime(value) {
   const m = String(value).trim().match(/^(-)?(\d+(?::\d{1,2}){0,2}(?:\.\d+)?)$/);
