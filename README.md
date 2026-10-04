@@ -2,25 +2,75 @@
 
 Local, free text-to-speech for video voice-overs using [Kokoro-82M](https://huggingface.co/hexgrad/Kokoro-82M) via `kokoro-onnx`. Runs offline after setup.
 
-## Run
+## Getting started
+
+### What you need
+
+| | Needed for | Install |
+|---|---|---|
+| [uv](https://docs.astral.sh/uv/) | running the app. It installs Python 3.12 and the Python packages for you | macOS / Linux: `curl -LsSf https://astral.sh/uv/install.sh \| sh` (or `brew install uv`)<br>Windows: `powershell -ExecutionPolicy ByPass -c "irm https://astral.sh/uv/install.ps1 \| iex"` |
+| Kokoro model files (~340 MB) | the voice. They're not in git; download them once (step 2) | — |
+| [ffmpeg](https://ffmpeg.org/) *(optional)* | the MP3 download. Without it, you get WAV and SRT only | macOS: `brew install ffmpeg` · Debian/Ubuntu: `sudo apt install ffmpeg` · Windows: `winget install Gyan.FFmpeg` |
+| [Node.js](https://nodejs.org/) 20.19+ or 22.12+ *(optional)* | only for changing the UI. The built UI is committed in `static/` | — |
+
+A current Chrome, Edge, Firefox, or Safari for the UI. No GPU or account is needed. Everything runs on your machine, and it works offline after setup.
+
+### 1. Clone
 
 ```bash
+git clone <repo-url> narrator
 cd narrator
-uv run app.py          # open http://127.0.0.1:8765
 ```
 
-CLI alternative:
+### 2. Download the model files
+
+```bash
+curl -L --create-dirs -o models/kokoro-v1.0.onnx https://github.com/thewh1teagle/kokoro-onnx/releases/download/model-files-v1.1/kokoro-v1.0.onnx
+curl -L --create-dirs -o models/voices-v1.0.bin  https://github.com/thewh1teagle/kokoro-onnx/releases/download/model-files-v1.1/voices-v1.0.bin
+```
+
+In Windows PowerShell, type `curl.exe` instead of `curl`.
+
+### 3. Run
+
+```bash
+uv run app.py
+```
+
+Open <http://127.0.0.1:8765>. The first run creates `.venv/` and installs the Python packages (FastAPI, Uvicorn, kokoro-onnx, SoundFile) from `uv.lock`, which can take a minute; later runs start right away. Stop the server with <kbd>Ctrl+C</kbd>. Renders are saved in `output/`.
+
+The app opens with the example script from `scripts/graphql-update.txt` and its pronunciation fixes from `scripts/pronunciations.txt`. Replace the text with your own; edits are kept in the browser.
+
+<details>
+<summary>Without uv (plain pip)</summary>
+
+With Python 3.12 or 3.13:
+
+```bash
+python3 -m venv .venv            # Windows: py -3.12 -m venv .venv
+source .venv/bin/activate        # Windows: .venv\Scripts\activate
+pip install fastapi kokoro-onnx soundfile uvicorn
+python app.py
+```
+
+</details>
+
+### Command line
+
+To render without the UI:
 
 ```bash
 uv run narrate.py scripts/graphql-update.txt --pronunciations scripts/pronunciations.txt --voice af_heart --srt -o output/narration.wav
 ```
 
-Model files live in `models/` (download them again if missing):
+`uv run narrate.py --help` lists the options (speed, sentence and paragraph pauses).
 
-```bash
-curl -L -o models/kokoro-v1.0.onnx https://github.com/thewh1teagle/kokoro-onnx/releases/download/model-files-v1.1/kokoro-v1.0.onnx
-curl -L -o models/voices-v1.0.bin  https://github.com/thewh1teagle/kokoro-onnx/releases/download/model-files-v1.1/voices-v1.0.bin
-```
+### Troubleshooting
+
+- **"Model files missing"**: step 2 wasn't done, or the files aren't in `models/` next to `app.py`.
+- **No MP3 download**: install ffmpeg, then restart `app.py`. It checks for ffmpeg at startup.
+- **"Address already in use"**: another copy is running on port 8765. Stop it, or change the port on the last line of `app.py`.
+- **No sound in the Sync preview**: browsers only start audio after a click or key press on the page. Click anywhere, then press play.
 
 ## Script syntax
 
