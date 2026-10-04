@@ -18,7 +18,7 @@ A current Chrome, Edge, Firefox, or Safari for the UI. No GPU or account is need
 ### 1. Clone
 
 ```bash
-git clone <repo-url> narrator
+git clone https://github.com/kozmaadrian/narrator.git
 cd narrator
 ```
 
