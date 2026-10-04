@@ -28,6 +28,11 @@ const segs = computed(() => (last.value ? stripEntries.value : []).map((e, i) =>
   return { ...e, i, label, short, style };
 }).filter((e) => e.end > e.start));
 const videoOnly = computed(() => !!last.value && videoLoaded.value && videoDuration.value + lead.value > narrationEnd.value);
+// Where a shorter video ends: the voice goes on over its last frame.
+const videoEnd = computed(() => {
+  const end = videoDuration.value + lead.value;
+  return last.value && videoLoaded.value && Number.isFinite(end) && end < narrationEnd.value - 0.05 ? end : null;
+});
 
 // What plays at strip time t.
 function describe(t) {
@@ -39,6 +44,7 @@ function describe(t) {
   else if (e?.kind === 'speech') { what = `¶${e.para + 1}`; text = e.text.replace(/^¶\d+\s+/, ''); }
   else if (e?.kind === 'pause') { what = 'Pause'; text = e.text || ''; }
   else if (e?.kind === 'wait') { what = `Added pause +${gapLen(e.end - e.start)}`; text = e.text; }
+  if (videoEnd.value != null && t >= videoEnd.value && what !== 'End') what += ' · after the video';
   return { what, text, hot: e?.i ?? -1 };
 }
 
@@ -140,6 +146,7 @@ const onLeave = () => { if (!scrubbing.value) hover.value = null; };
         ><span v-if="e.label" class="lbl">{{ e.label }}</span><span v-if="e.short" class="lbl short">{{ e.short }}</span></div>
         <div v-if="last && lead > 0" class="vstart" :style="{ left: pct(lead) }" />
         <div v-if="videoOnly" class="videoonly" :style="{ left: pct(narrationEnd) }" />
+        <div v-if="videoEnd != null" class="vstart" :style="{ left: pct(videoEnd) }" />
         <div v-if="hover" class="cursor" :style="{ left: pct(hover.t) }" />
         <div v-if="last" class="playhead" :style="{ left: pct(clock.t) }" />
       </div>

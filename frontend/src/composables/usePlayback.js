@@ -9,7 +9,9 @@ const { lead, sched, narrationEnd } = useTimeline();
 let voiceUrl = '';          // the last render's audio
 let video = null;           // the <video> (VideoPanel binds it)
 let free = { t: 0, since: null };  // the clock without a video: narration time t, performance.now() while playing
-let intro = null;           // voice intro, video held on frame 0: { t: narration time, since: performance.now() while playing }
+// The video held on a frame while the voice goes on: its first frame during the voice intro, its last once a
+// shorter video has ended. { t: narration time, since: performance.now() while playing, end: on the last frame }
+let hold = null;
 let resumeVideo = false;    // next video 'play' event comes from the end of the intro
 let settleUntil = 0;
 
@@ -23,14 +25,19 @@ const hasMedia = () => (videoLoaded.value ? !!video.src : !!voiceUrl);
 const freeTime = () => (free.since == null ? free.t : free.t + (performance.now() - free.since) / 1000);
 const freeAt = (t, playing) => { free = { t: Math.min(Math.max(0, t), narrationEnd.value), since: playing ? performance.now() : null }; };
 
-// Narration time during the voice intro, while the video holds its first frame.
-const introTime = () => (intro.since == null ? intro.t : intro.t + ((performance.now() - intro.since) / 1000) * video.playbackRate);
-const introPlaying = () => !!intro && intro.since != null;
+// Narration time while the video holds a frame.
+const holdTime = () => (hold.since == null ? hold.t : hold.t + ((performance.now() - hold.since) / 1000) * video.playbackRate);
+const holdPlaying = () => !!hold && hold.since != null;
+
+// Where the video ends on the narration clock; Infinity until it's known (or for a stream).
+const videoEnd = () => (Number.isFinite(video.duration) ? video.duration + lead.value : Infinity);
+// The narration goes on after the video: it holds its last frame meanwhile.
+const outlasts = () => narrationEnd.value > videoEnd() + 0.05;
 
 // Position on the narration clock (video time + lead).
 function currentTime() {
   if (!videoLoaded.value) return freeTime();
-  if (intro) return introTime();
+  if (hold) return holdTime();
   return (video.currentTime || 0) + lead.value;
 }
 
@@ -39,7 +46,7 @@ const videoTime = () => currentTime() - lead.value;
 
 function startIntro(t = 0) {
   if (t >= lead.value - 0.05) t = 0;
-  intro = { t, since: performance.now() };
+  hold = { t, since: performance.now() };
   if (!video.paused) video.pause();
   if (video.currentTime > 0) video.currentTime = 0;
   syncAudio(0);
@@ -50,13 +57,18 @@ function seekTo(t) {
   clock.seeks++;
   t = Math.max(0, t);
   if (!videoLoaded.value) { freeAt(t, free.since != null); syncAudio(0); return; }
-  const L = lead.value, playing = intro ? introPlaying() : !video.paused;
+  const L = lead.value, playing = hold ? holdPlaying() : !video.paused;
   if (t < L) {
-    intro = { t, since: playing ? performance.now() : null };
+    hold = { t, since: playing ? performance.now() : null };
     if (!video.paused) video.pause();
     video.currentTime = 0;
+  } else if (t >= videoEnd() - 0.05 && outlasts()) {  // past the end of a shorter video: the voice goes on
+    t = Math.min(t, narrationEnd.value);
+    hold = { t, since: playing && t < narrationEnd.value ? performance.now() : null, end: true };
+    if (!video.paused) video.pause();
+    video.currentTime = video.duration;
   } else {
-    intro = null;
+    hold = null;
     video.currentTime = t - L;
     if (playing && video.paused) { resumeVideo = true; video.play().catch(() => {}); }
   }
@@ -64,9 +76,14 @@ function seekTo(t) {
 }
 
 function togglePlay() {
-  if (introPlaying()) { intro = { t: introTime(), since: null }; syncAudio(0); return; }
+  if (holdPlaying()) { hold = { ...hold, t: holdTime(), since: null }; syncAudio(0); return; }
   if (!hasMedia()) return;
   if (videoLoaded.value) {
+    if (hold?.end) {  // on the last frame: the voice goes on from here, or from its end starts over
+      if (hold.t < narrationEnd.value - 0.01) { hold = { ...hold, since: performance.now() }; syncAudio(0); return; }
+      hold = null;
+      video.currentTime = 0;
+    }
     if (video.paused) video.play().catch(() => {}); else video.pause();
     return;
   }
@@ -76,7 +93,7 @@ function togglePlay() {
 }
 
 function pausePlayback() {
-  if (introPlaying()) togglePlay();
+  if (holdPlaying()) togglePlay();
   if (video && !video.paused) video.pause();
   if (free.since != null) freeAt(freeTime(), false);
   syncAudio(0);
@@ -159,7 +176,7 @@ function syncAudio(tolerance = 0.1) {
   if (tolerance > 0 && performance.now() < settleUntil) tolerance = Math.max(tolerance, 0.35);
   const withVideo = videoLoaded.value, rate = withVideo ? video.playbackRate : 1, s = sched.value;
   const playing = !withVideo ? free.since != null
-    : intro ? intro.since != null : !video.paused && !video.seeking && video.readyState >= 3;
+    : hold ? hold.since != null : !video.paused && !video.seeking && video.readyState >= 3;
   if (playing) audioContext();
   if (!playing || !voiceBuf || !s || !actx || actx.state !== 'running') { if (voices.length) stopVoices(); return; }
   const t = currentTime(), key = (s.key ??= JSON.stringify(s.segs));
@@ -172,17 +189,40 @@ function bindVideo(el) {
   video = el;
   el.muted = true;
   el.addEventListener('play', () => {
-    if (introPlaying()) { el.pause(); return; }  // video stays on its first frame until the intro ends
+    if (hold?.end) {  // the video's own play button on its last frame: the voice goes on, the video stays there
+      el.pause();
+      el.currentTime = el.duration;
+      if (!holdPlaying()) hold = { ...hold, since: performance.now() };
+      syncAudio(0);
+      return;
+    }
+    if (holdPlaying()) { el.pause(); return; }  // video stays on its first frame until the intro ends
     settleUntil = performance.now() + 600;
     if (resumeVideo) { resumeVideo = false; syncAudio(0.08); return; }
-    if (lead.value > 0 && voiceUrl && el.currentTime < 0.05) { startIntro(intro ? intro.t : 0); return; }
-    intro = null;
+    if (lead.value > 0 && voiceUrl && el.currentTime < 0.05) { startIntro(hold ? hold.t : 0); return; }
+    hold = null;
     syncAudio(0);
   });
   el.addEventListener('playing', () => syncAudio(0.08));
-  el.addEventListener('seeking', () => { if (intro && el.currentTime > 0.01) intro = null; clock.seeks++; });
+  el.addEventListener('seeking', () => {
+    // A seek away from the held frame ends the hold; play() from the end (seeking to 0) keeps it, see 'play'.
+    const kept = hold && (hold.end ? el.currentTime >= el.duration - 0.05 || (!el.paused && hold.t < narrationEnd.value - 0.01)
+      : el.currentTime <= 0.01);
+    if (!kept) hold = null;
+    clock.seeks++;
+  });
   el.addEventListener('seeked', () => syncAudio(0));
-  for (const ev of ['pause', 'waiting']) el.addEventListener(ev, () => { if (!introPlaying()) syncAudio(0); });
+  // A shorter video ran out while playing: hold its last frame and let the voice go on (the running audio
+  // keeps playing, hence the tolerance).
+  const ran = (playing) => {
+    if (hold || !outlasts()) return false;
+    hold = { t: videoEnd(), since: playing ? performance.now() : null, end: true };
+    syncAudio();
+    return true;
+  };
+  el.addEventListener('pause', () => { if (!(el.ended && ran(true)) && !holdPlaying()) syncAudio(0); });
+  el.addEventListener('ended', () => ran(clock.playing));
+  el.addEventListener('waiting', () => { if (!holdPlaying()) syncAudio(0); });
   el.addEventListener('timeupdate', () => syncAudio());
   el.addEventListener('ratechange', () => syncAudio(0));
   for (const ev of ['loadedmetadata', 'durationchange', 'emptied']) el.addEventListener(ev, () => { videoDuration.value = el.duration; });
@@ -190,7 +230,7 @@ function bindVideo(el) {
 
 // A new render: play it from the same video time (resumeAt), or else from the start of the voice.
 function loadAudio(src, resumeAt = null) {
-  intro = null;
+  hold = null;
   voiceUrl = src;
   freeAt((resumeAt ?? -lead.value) + lead.value, false);
   loadVoice();
@@ -200,7 +240,7 @@ function loadVideo(file) {
   if (!file || !file.type.startsWith('video/')) return setStatus('Please choose a video file.', true);
   if (video.src) URL.revokeObjectURL(video.src);
   if (free.since != null) freeAt(freeTime(), false);
-  intro = null;
+  hold = null;
   video.src = URL.createObjectURL(file);
   videoLoaded.value = true;
   stopVoices();
@@ -211,7 +251,7 @@ function loadVideo(file) {
 // The narration stays where the video was.
 function removeVideo() {
   const t = currentTime();
-  intro = null;
+  hold = null;
   video.pause();
   stopVoices();
   URL.revokeObjectURL(video.src);
@@ -225,10 +265,13 @@ function removeVideo() {
 const setVideoSound = (on) => { video.muted = !on; };
 
 function tick() {
-  if (intro && introTime() >= lead.value) {
-    const playing = introPlaying();
-    intro = null;
+  if (hold && !hold.end && holdTime() >= lead.value) {
+    const playing = holdPlaying();
+    hold = null;
     if (playing) { resumeVideo = true; video.play().catch(() => {}); }
+  } else if (hold?.end) {  // on the last frame until the voice is done too
+    if (!outlasts()) hold = null;
+    else if (holdTime() >= narrationEnd.value && (holdPlaying() || hold.t > narrationEnd.value)) hold = { t: narrationEnd.value, since: null, end: true };
   }
   if (!videoLoaded.value && free.since != null) {
     if (voiceSrc && !voiceBuf) free.since = performance.now();  // hold until the audio is decoded
@@ -236,8 +279,8 @@ function tick() {
   }
   syncAudio();
   clock.t = currentTime();
-  clock.intro = !!intro;
-  clock.playing = videoLoaded.value ? introPlaying() || (!!video.src && !video.paused) : free.since != null;
+  clock.intro = !!hold && !hold.end;
+  clock.playing = videoLoaded.value ? holdPlaying() || (!!video.src && !video.paused) : free.since != null;
   requestAnimationFrame(tick);
 }
 const startClock = () => requestAnimationFrame(tick);

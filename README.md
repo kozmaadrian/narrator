@@ -63,6 +63,8 @@ Every change is a step in the **Timing history** under the downloads (in one col
 
 Paragraph 1 can take a negative Start, e.g. `-0:02.5`. The voice then starts 2.5 s before the video. This is kept with the render, not in the script, and Sync shows "the video starts 2.50s into the audio". In the preview, playing from 0:00 runs the intro first, holding the video on its first frame. When editing, place the narration audio 2.5 s before the video, or delay the video by 2.5 s. A positive Start for paragraph 1 becomes a leading `[pause …]`.
 
+If the video is shorter than the narration, the preview holds the video's last frame while the voice goes on, so clicking a later paragraph plays from there instead of ending the video. A dashed marker on the timeline shows where the video ends.
+
 **Reset script** restores the original script from `scripts/graphql-update.txt`. Until you edit the script again, the button reads **Undo reset** and brings your version back.
 
 **Messages** appear on the screen they belong to: under the toolbar on 1 · Script, under the timeline on 2 · Sync, and under the timing history for what Apply or Discard did. They're announced to screen readers, × dismisses them, and switching screens clears them. Card edits and link toggles show no message: the cards, pause pills and history show what changed, and screen readers hear a short note.
