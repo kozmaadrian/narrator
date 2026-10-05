@@ -119,6 +119,6 @@ const onClick = (e) => { if (e.target === dialog.value && downOutside) toggleHel
 @media (max-width: 720px) {
   .flow, .help-cols, .help-foot :deep(.keys) { grid-template-columns: 1fr; }
 }
-@media (prefers-color-scheme: dark) { .help-dialog::backdrop { background: rgba(0, 0, 0, .5); } }
+:root[data-theme=dark] .help-dialog::backdrop { background: rgba(0, 0, 0, .5); }
 @media (prefers-reduced-motion: reduce) { .help-dialog::backdrop { animation: none; } }
 </style>

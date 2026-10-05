@@ -1,5 +1,5 @@
 <!-- Brand, the two screen tabs (2 · Sync counts the paragraphs with pending timing changes), the screen's
-     actions and the help button. (Messages show on each screen: see StatusBar.) -->
+     actions, the light/dark switch and the help button. (Messages show on each screen: see StatusBar.) -->
 <script setup>
 import { computed } from 'vue';
 import Icon from './ui/Icon.vue';
@@ -9,11 +9,13 @@ import { useWorkflow } from '../composables/useWorkflow';
 import { useHelp } from '../composables/useHelp';
 import { useCues } from '../composables/useCues';
 import { useTimeline } from '../composables/useTimeline';
+import { useTheme } from '../composables/useTheme';
 
 const { show, generate, applyDraft } = useWorkflow();
 const { toggleHelp } = useHelp();
 const { discardDraft } = useCues();
 const { pending } = useTimeline();
+const { theme, toggleTheme } = useTheme();
 
 // Paragraphs whose Start differs from the render while changes wait for Apply.
 const changed = computed(() => (draft.value ? pending.value.filter(Boolean).length : 0));
@@ -82,15 +84,26 @@ const generateTitle = computed(() => (screen.value === 'script'
       >
         Apply
       </button>
-      <button
-        class="ghost help-btn"
-        title="Shortcuts & how it works (?)"
-        aria-label="Shortcuts and how it works"
-        aria-haspopup="dialog"
-        @click="toggleHelp(true)"
-      >
-        <Icon name="help" />
-      </button>
+      <div class="tools">
+        <button
+          class="ghost round"
+          aria-label="Dark theme"
+          :aria-pressed="theme === 'dark'"
+          :title="theme === 'dark' ? 'Switch to the light theme' : 'Switch to the dark theme'"
+          @click="toggleTheme()"
+        >
+          <Icon :name="theme === 'dark' ? 'sun' : 'moon'" />
+        </button>
+        <button
+          class="ghost round"
+          title="Shortcuts & how it works (?)"
+          aria-label="Shortcuts and how it works"
+          aria-haspopup="dialog"
+          @click="toggleHelp(true)"
+        >
+          <Icon name="help" />
+        </button>
+      </div>
     </div>
   </header>
 </template>
@@ -110,8 +123,9 @@ header { height: 56px; display: grid; grid-template-columns: 1fr auto 1fr; align
 .tabs .count.dot { min-width: 0; width: 8px; height: 8px; padding: 0; background: var(--pause); box-shadow: none; }
 .header-end { justify-self: end; display: flex; align-items: center; gap: 10px; }
 .discard .i { width: 14px; height: 14px; }
-.help-btn { flex: none; width: 32px; height: 32px; padding: 0; border-radius: 50%; }
-.help-btn .i { width: 18px; height: 18px; }
+.tools { display: flex; gap: 2px; }
+.round { flex: none; width: 32px; height: 32px; padding: 0; border-radius: 50%; }
+.round .i { width: 18px; height: 18px; }
 /* Narrow: the name and then the logo give way so the tabs and the action keep their room.
    The h1 stays in the accessibility tree. */
 @media (max-width: 560px) {
@@ -119,7 +133,7 @@ header { height: 56px; display: grid; grid-template-columns: 1fr auto 1fr; align
   .tabs { justify-self: center; }
   .brand h1 { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
 }
-@media (max-width: 420px) {
+@media (max-width: 500px) {
   header { grid-template-columns: auto 1fr; gap: 8px; }
   .brand { position: absolute; }
   .brand .logo { display: none; }
@@ -129,10 +143,15 @@ header { height: 56px; display: grid; grid-template-columns: 1fr auto 1fr; align
   .discard { width: 34px; padding: 0; justify-content: center; }
   .discard .label { display: none; }
 }
+/* With pending changes the header needs ~391px here: below that the tabs' step numbers give way (the labels stay). */
+@media (max-width: 390px) {
+  .tabs .step { display: none; }
+  .tabs button { padding: 0 10px; }
+}
 @media (max-width: 360px) {
   header { gap: 6px; padding: 0 8px; }
   .header-end { gap: 6px; }
-  .tabs button { padding: 0 8px 0 4px; gap: 4px; }
+  .tabs button { padding: 0 8px; gap: 4px; }
   .tabs .sync.dirty { padding-right: 4px; }
   .tabs .count { min-width: 16px; height: 16px; padding: 0 4px; }
   .action { padding: 0 10px; }

@@ -1,6 +1,6 @@
 /* Theme, shared controls and layout. Component-specific styles live in each component. */
 :root {
-  color-scheme: light dark;
+  color-scheme: light;
   --bg: #f4f5f7; --surface: #fff; --surface-2: #f8f9fb; --surface-3: #eef0f3;
   --text: #111827; --muted: #565e6c; --subtle: #646b79; --border: #e6e8ec; --border-strong: #d4d8df;
   --primary: #4f46e5; --primary-hover: #4338ca; --primary-text: #fff;
@@ -13,19 +13,21 @@
   --mono: ui-monospace, "SF Mono", SFMono-Regular, Menlo, monospace;
   --ui-font: -apple-system, BlinkMacSystemFont, Inter, "Segoe UI", Roboto, sans-serif;
 }
-@media (prefers-color-scheme: dark) {
-  :root {
-    --bg: #0b0d11; --surface: #14161c; --surface-2: #181b22; --surface-3: #20242c;
-    --text: #e8eaef; --muted: #a3abba; --subtle: #8a93a3; --border: #22262e; --border-strong: #2f3440;
-    --primary: #5558e6; --primary-hover: #4f52d8; --speech: #5558e6;
-    --accent: #a5b4fc; --accent-weak: rgba(129, 140, 248, .12); --accent-line: rgba(129, 140, 248, .35); --ring: rgba(129, 140, 248, .3); --focus: #a5b4fc;
-    --warn-bg: rgba(251, 191, 36, .08); --warn-line: rgba(251, 191, 36, .25); --warn: #fbbf24;
-    --pause-bg: rgba(245, 158, 11, .1); --pause-line: rgba(245, 158, 11, .3); --pause-ink: #fbbf24;
-    --wait-bg: rgba(16, 185, 129, .1); --wait-line: rgba(16, 185, 129, .32); --wait-ink: #34d399;
-    --active: rgba(129, 140, 248, .13); --error: #f87171;
-    --shadow: 0 1px 2px rgba(0, 0, 0, .35);
-  }
+/* The theme is data-theme on <html>: set before the first paint by index.html, then by useTheme. */
+:root[data-theme=dark] {
+  color-scheme: dark;
+  --bg: #0b0d11; --surface: #14161c; --surface-2: #181b22; --surface-3: #20242c;
+  --text: #e8eaef; --muted: #a3abba; --subtle: #8a93a3; --border: #22262e; --border-strong: #2f3440;
+  --primary: #5558e6; --primary-hover: #4f52d8; --speech: #5558e6;
+  --accent: #a5b4fc; --accent-weak: rgba(129, 140, 248, .12); --accent-line: rgba(129, 140, 248, .35); --ring: rgba(129, 140, 248, .3); --focus: #a5b4fc;
+  --warn-bg: rgba(251, 191, 36, .08); --warn-line: rgba(251, 191, 36, .25); --warn: #fbbf24;
+  --pause-bg: rgba(245, 158, 11, .1); --pause-line: rgba(245, 158, 11, .3); --pause-ink: #fbbf24;
+  --wait-bg: rgba(16, 185, 129, .1); --wait-line: rgba(16, 185, 129, .32); --wait-ink: #34d399;
+  --active: rgba(129, 140, 248, .13); --error: #f87171;
+  --shadow: 0 1px 2px rgba(0, 0, 0, .35);
 }
+/* No colour transitions while the theme switches, so everything changes at once. */
+.theme-switching, .theme-switching * { transition: none !important; }
 * { box-sizing: border-box; }
 [hidden] { display: none !important; }
 /* Read by screen readers, not shown. */
@@ -105,7 +107,8 @@ kbd { border: 1px solid var(--border-strong); border-bottom-width: 2px; backgrou
 /* Modal surfaces: the render progress card and the help sheet. */
 .overlay { position: fixed; inset: 0; z-index: 50; display: grid; place-items: center; padding: 24px; background: rgba(17, 24, 39, .32); backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px); animation: fade .18s ease-out; }
 .overlay-card { width: min(440px, 100%); padding: 22px; display: flex; flex-direction: column; gap: 16px; background: var(--surface); border: 1px solid var(--border); border-radius: 16px; box-shadow: 0 24px 56px -12px rgba(16, 24, 40, .3), 0 2px 6px rgba(16, 24, 40, .06); cursor: default; animation: rise .22s cubic-bezier(.2, .8, .2, 1); }
-@media (prefers-color-scheme: dark) { .overlay { background: rgba(0, 0, 0, .5); } .overlay-card { box-shadow: 0 24px 56px -12px rgba(0, 0, 0, .7); } }
+[data-theme=dark] .overlay { background: rgba(0, 0, 0, .5); }
+[data-theme=dark] .overlay-card { box-shadow: 0 24px 56px -12px rgba(0, 0, 0, .7); }
 @media (prefers-reduced-motion: reduce) { .overlay, .overlay-card { animation: none; } }
 
 @keyframes spin { to { transform: rotate(360deg); } }

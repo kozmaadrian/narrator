@@ -81,7 +81,7 @@ You write the narration on one screen, then line it up with your video on the ot
 3. **Sync** on **2 · Sync**. Drop in your video, press play, and press <kbd>⌥N</kbd> each time the next paragraph should start. Or type the times on the paragraph cards.
 4. **Apply** (<kbd>⌘↵</kbd>). This writes the timing into the script and renders again. Then download the **WAV**, **MP3**, or **SRT** subtitles; they're also saved in `output/`.
 
-In the app, **?** opens a cheat sheet with all of this.
+In the app, **?** opens a cheat sheet with all of this. The sun/moon button next to it switches between the light and dark theme; until you pick one, the app follows your system.
 
 ## Script syntax
 
@@ -177,12 +177,12 @@ npm run dev            # http://localhost:5173 with hot reload; /api is proxied 
 | Path | Contents |
 |---|---|
 | `App.vue` | the header, the two screens, and the overlays |
-| `components/AppHeader.vue` | brand, screen tabs (2 · Sync counts pending timing changes), Generate (or Discard / Apply), help |
+| `components/AppHeader.vue` | brand, screen tabs (2 · Sync counts pending timing changes), Generate (or Discard / Apply), theme switch, help |
 | `components/script/` | 1 · Script: editor, toolbar, settings sidebar, pronunciation list |
 | `components/sync/` | 2 · Sync: video panel, transport, timeline strip, downloads, paragraph timing cards (paragraph cards and ⏸ pause connectors) and timing history |
 | `components/overlays/` | progress card, help dialog, shortcut list |
 | `components/ui/` | SVG icon sprite and `Icon` |
-| `composables/` | behavior: rendering, playback clock, cues, editor, preview, workflow, shortcuts, persistence |
+| `composables/` | behavior: rendering, playback clock, cues, editor, preview, workflow, shortcuts, persistence, theme |
 | `lib/` | pure helpers and data: script parsing, timing math, formatting, pronunciation, voices, shortcut list, API calls |
 | `state.js` | shared reactive state |
 | `styles/base.css` | theme tokens and shared styles; components keep their own styles scoped |
