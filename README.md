@@ -2,6 +2,16 @@
 
 Local, free text-to-speech for video voice-overs using [Kokoro-82M](https://huggingface.co/hexgrad/Kokoro-82M) via `kokoro-onnx`. Runs offline after setup.
 
+Narrator turns a written script into a natural-sounding AI voice-over and helps you line it up with your video. Write the narration, teach it how to say tricky words, and generate the voice on your own computer. Then drop in your screen recording, move each paragraph to the right moment, and download the voice-over as WAV or MP3 with matching SRT subtitles. There's no account, no cloud service, and no per-minute fee.
+
+![Narrator demo: write a script, fix a pronunciation, generate the AI voice, sync it to a video, and download the voice-over](docs/demo.gif)
+
+- **AI voice that runs on your machine**: several voices and adjustable speed, with no GPU needed.
+- **Pronunciation fixes**: tell it how to say product names and jargon, and press ▶ to hear the result.
+- **Pauses you control**: set automatic pauses between sentences and paragraphs, or type exact ones like `[pause 2s]`.
+- **Sync to video**: play your video with the narration and subtitles, then set each paragraph's start time by pressing a key or typing a time.
+- **Ready to use**: download WAV, MP3, and SRT subtitles to drop into any video editor.
+
 ## Getting started
 
 ### What you need
